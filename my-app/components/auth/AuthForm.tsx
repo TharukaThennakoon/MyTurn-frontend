@@ -6,7 +6,7 @@ type Props = {
 
 export default function AuthForm({ type }: Props) {
   return (
-    <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
+<div className="w-full max-w-xs">
       <h2 className="text-2xl font-semibold mb-2">
         {type === "register" ? "Create an Account" : "Login"}
       </h2>
