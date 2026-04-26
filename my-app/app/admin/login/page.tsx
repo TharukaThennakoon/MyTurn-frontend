@@ -20,23 +20,22 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
   return (
     <main className={styles.page}>
       <section className={styles.leftPane}>
-        <p className={styles.kicker}>MyTurn Control</p>
-        <h1>Admin Access Portal</h1>
+        <p className={styles.brand}>MyTurn</p>
+        <h1>Fuel Access, Without the Wait.</h1>
         <p className={styles.lead}>
-          Manage queue flow, monitor pump activity, and handle priority sessions from a
-          single dashboard.
+          Join the MyTurn operator network and keep stations moving with secure, real-time
+          queue controls.
         </p>
-        <div className={styles.tags}>
-          <span>Queue Moderation</span>
-          <span>Station Insights</span>
-          <span>Operator Controls</span>
+        <div className={styles.featureList}>
+          <span>Real-time queue status updates</span>
+          <span>Priority session controls</span>
         </div>
       </section>
 
       <section className={styles.rightPane}>
         <div className={styles.card}>
           <h2>Admin Sign In</h2>
-          <p className={styles.subtitle}>Authorized personnel only.</p>
+          <p className={styles.subtitle}>Secure access for station operators.</p>
 
           {showInvalidCredentials && (
             <p className={styles.errorMessage} role="alert" aria-live="polite">
