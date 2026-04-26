@@ -10,9 +10,12 @@
   overflow: hidden;
   color: #ffffff;
   background:
-    linear-gradient(145deg, rgba(0, 32, 94, 0.85), rgba(0, 88, 190, 0.7)),
+    linear-gradient(145deg, rgba(0, 32, 94, 0.82), rgba(0, 88, 190, 0.68)),
     radial-gradient(circle at 20% 20%, rgba(64, 181, 255, 0.35), transparent 45%),
-    linear-gradient(180deg, #003a8c 0%, #0058be 100%);
+    url("/images/landing.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .overlay {
