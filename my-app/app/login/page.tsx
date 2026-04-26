@@ -7,7 +7,16 @@ export const metadata: Metadata = {
   description: "Login to MyTurn and manage your fuel access queue in real time.",
 };
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{
+    error?: string;
+  }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams;
+  const showInvalidCredentials = params.error === "invalid_credentials";
+
   return (
     <main className={styles.wrapper}>
       <section className={styles.showcase}>
@@ -32,6 +41,12 @@ export default function LoginPage() {
         <div className={styles.card}>
           <h2>Login to MyTurn</h2>
           <p className={styles.subtitle}>Continue your seamless fueling journey.</p>
+
+          {showInvalidCredentials && (
+            <p className={styles.errorMessage} role="alert" aria-live="polite">
+              Invalid credentials. Please check your email and password.
+            </p>
+          )}
 
           <form className={styles.form}>
             <label htmlFor="email">Email Address</label>
