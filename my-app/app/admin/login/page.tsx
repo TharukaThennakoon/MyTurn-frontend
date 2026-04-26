@@ -7,7 +7,16 @@ export const metadata: Metadata = {
   description: "Secure access for station operators and administrators.",
 };
 
-export default function AdminLoginPage() {
+type AdminLoginPageProps = {
+  searchParams: Promise<{
+    error?: string;
+  }>;
+};
+
+export default async function AdminLoginPage({ searchParams }: AdminLoginPageProps) {
+  const params = await searchParams;
+  const showInvalidCredentials = params.error === "invalid_credentials";
+
   return (
     <main className={styles.page}>
       <section className={styles.leftPane}>
@@ -28,6 +37,12 @@ export default function AdminLoginPage() {
         <div className={styles.card}>
           <h2>Admin Sign In</h2>
           <p className={styles.subtitle}>Authorized personnel only.</p>
+
+          {showInvalidCredentials && (
+            <p className={styles.errorMessage} role="alert" aria-live="polite">
+              Invalid credentials. Please check your email, password, and security code.
+            </p>
+          )}
 
           <form className={styles.form}>
             <label htmlFor="admin-email">Work Email</label>
