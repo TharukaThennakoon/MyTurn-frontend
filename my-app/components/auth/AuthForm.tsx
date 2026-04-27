@@ -1,3 +1,5 @@
+
+import Link from "next/link";
 import VehicleDetails from "./VehicleDetails";
 
 type Props = {
@@ -38,9 +40,12 @@ export default function AuthForm({ type }: Props) {
           {type === "register"
             ? "Already have an account?"
             : "Don't have an account?"}
-          <span className="text-blue-600 ml-1 cursor-pointer">
+          <Link
+            href={type === "register" ? "/login" : "/register"}
+            className="text-blue-600 ml-1 hover:underline"
+          >
             {type === "register" ? "Login here" : "Register here"}
-          </span>
+          </Link>
         </p>
       </form>
     </div>
