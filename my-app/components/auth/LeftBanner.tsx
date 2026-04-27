@@ -2,7 +2,7 @@ export default function LeftBanner() {
   return (
     <div
       className="w-full h-full bg-cover bg-center relative text-white"
-      style={{ backgroundImage: "url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbErcVylyU6SBmIIC6BqrP68KHDfttyCRM5w&s')" }}
+      style={{ backgroundImage: "url('/images/landing.png')" }}
     >
       <div className="absolute inset-0 bg-blue-900/80 flex flex-col justify-center px-12">
         {/* Brand Icon and Name */}
