@@ -46,7 +46,7 @@ src/
 
 1. Clone the repository
 ```
-git clone https://github.com/your-username/myturn-frontend.git
+git clone https://github.com/TharukaThennakoon/myturn-frontend.git
 ```
 
 2. Navigate to the project
