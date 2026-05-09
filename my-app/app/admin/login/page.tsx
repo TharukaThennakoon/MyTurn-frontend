@@ -10,12 +10,14 @@ export const metadata: Metadata = {
 type AdminLoginPageProps = {
   searchParams: Promise<{
     error?: string;
+    success?: string;
   }>;
 };
 
 export default async function AdminLoginPage({ searchParams }: AdminLoginPageProps) {
   const params = await searchParams;
   const showInvalidCredentials = params.error === "invalid_credentials";
+  const showSuccess = params.success === "true";
 
   return (
     <main className={styles.page}>
@@ -40,6 +42,12 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
           {showInvalidCredentials && (
             <p className={styles.errorMessage} role="alert" aria-live="polite">
               Invalid credentials. Please check your email, password, and security code.
+            </p>
+          )}
+
+          {showSuccess && (
+            <p className={styles.successMessage} role="status" aria-live="polite">
+              Login successful! Redirecting to dashboard...
             </p>
           )}
 
