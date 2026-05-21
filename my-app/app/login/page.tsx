@@ -4,18 +4,21 @@ import styles from "./page.module.css";
 
 export const metadata: Metadata = {
   title: "MyTurn Login",
-  description: "Login to MyTurn and manage your fuel access queue in real time.",
+  description:
+    "Login to MyTurn and manage your fuel access queue in real time.",
 };
 
 type LoginPageProps = {
   searchParams: Promise<{
     error?: string;
+    success?: string;
   }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const showInvalidCredentials = params.error === "invalid_credentials";
+  const showSuccess = params.success === "true";
 
   return (
     <main className={styles.wrapper}>
@@ -40,11 +43,23 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <section className={styles.formSide}>
         <div className={styles.card}>
           <h2>Login to MyTurn</h2>
-          <p className={styles.subtitle}>Continue your seamless fueling journey.</p>
+          <p className={styles.subtitle}>
+            Continue your seamless fueling journey.
+          </p>
 
           {showInvalidCredentials && (
             <p className={styles.errorMessage} role="alert" aria-live="polite">
               Invalid credentials. Please check your email and password.
+            </p>
+          )}
+
+          {showSuccess && (
+            <p
+              className={styles.successMessage}
+              role="status"
+              aria-live="polite"
+            >
+              Login successful!
             </p>
           )}
 
@@ -53,7 +68,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <input id="email" type="email" placeholder="john@example.com" />
 
             <label htmlFor="password">Password</label>
-            <input id="password" type="password" placeholder="Enter your password" />
+            <input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+            />
 
             <div className={styles.row}>
               <label className={styles.checkbox}>
