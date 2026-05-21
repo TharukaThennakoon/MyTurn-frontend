@@ -19,16 +19,56 @@ export default function AuthForm({ type }: Props) {
 
       <form className="space-y-4">
         {type === "register" && (
-          <input type="text" placeholder="Full Name" className="input" />
+          <div>
+            <label htmlFor="full-name" className="sr-only">
+              Full Name
+            </label>
+            <input
+              id="full-name"
+              type="text"
+              placeholder="Full Name"
+              className="input"
+            />
+          </div>
         )}
 
         {/* Phone + Email */}
         <div className="flex gap-2">
-          <input type="text" placeholder="Phone Number" className="input" />
-          <input type="email" placeholder="Email Address" className="input" />
+          <div className="flex-1">
+            <label htmlFor="phone-number" className="sr-only">
+              Phone Number
+            </label>
+            <input
+              id="phone-number"
+              type="text"
+              placeholder="Phone Number"
+              className="input"
+            />
+          </div>
+          <div className="flex-1">
+            <label htmlFor="email-address" className="sr-only">
+              Email Address
+            </label>
+            <input
+              id="email-address"
+              type="email"
+              placeholder="Email Address"
+              className="input"
+            />
+          </div>
         </div>
 
-        <input type="password" placeholder="Password" className="input" />
+        <div>
+          <label htmlFor="password" className="sr-only">
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            placeholder="Password"
+            className="input"
+          />
+        </div>
 
         {type === "register" && <VehicleDetails />}
 
