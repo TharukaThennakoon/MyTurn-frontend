@@ -1,8 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-*, *::before, *::after {
+/* Reset */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html {
@@ -10,29 +14,62 @@ html {
 }
 
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  background: #fff;
+  font-family: var(--font-inter), sans-serif;
+  background: #f7f8fc;
   color: #0f172a;
   -webkit-font-smoothing: antialiased;
 }
 
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  border: none;
+  outline: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Components */
 @layer components {
+
   .input {
     @apply w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500;
   }
+
   .btn-primary {
     @apply w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition cursor-pointer;
   }
+
   .footer-inner {
-    flex-direction: column;
-    gap: 24px;
+    flex-direction: column !important;
+    gap: 24px !important;
   }
-  /* Dashboard responsive */
+
   .dashboard-mid-row {
-    flex-direction: column;
+    flex-direction: column !important;
   }
+
   .dashboard-insights-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .profile-two-col {
+    grid-template-columns: 1fr !important;
+  }
+  .profile-settings-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .profile-hero {
+    flex-direction: column !important;
+    text-align: center;
+    align-items: center !important;
   }
 }
 

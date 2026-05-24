@@ -1,0 +1,344 @@
+/* ─────────────────────────────────────────
+   page.module.css  –  Contact page
+───────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap');
+
+.page {
+  font-family: 'DM Sans', sans-serif;
+  color: #111827;
+}
+
+/* ── HERO ─────────────────────────────── */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: #0f172a;
+  padding: 7rem 1.5rem 6rem;
+  text-align: center;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(37,99,235,0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37,99,235,0.12) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 560px;
+  height: 340px;
+  background: radial-gradient(ellipse, rgba(37,99,235,0.35) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #60a5fa;
+  background: rgba(37,99,235,0.15);
+  border: 1px solid rgba(96,165,250,0.3);
+  padding: 0.3rem 0.9rem;
+  border-radius: 99px;
+  margin-bottom: 1.5rem;
+  animation: fadeUp 0.5s ease both;
+}
+
+.title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  font-weight: 400;
+  color: #f8fafc;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 1.25rem;
+  animation: fadeUp 0.55s 0.08s ease both;
+}
+
+.title em {
+  font-style: italic;
+  color: #60a5fa;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #94a3b8;
+  line-height: 1.75;
+  margin: 0 auto;
+  animation: fadeUp 0.55s 0.16s ease both;
+}
+
+/* ── SECTION ──────────────────────────── */
+.section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 5rem 1.5rem 6rem;
+}
+
+/* ── TWO-COLUMN LAYOUT ────────────────── */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 4rem;
+  align-items: start;
+}
+
+/* ── INFO COL ─────────────────────────── */
+.infoCol {
+  position: sticky;
+  top: 88px;
+}
+
+.infoTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.75rem;
+}
+
+.infoText {
+  font-size: 0.95rem;
+  color: #6b7280;
+  line-height: 1.75;
+  margin: 0 0 2.5rem;
+}
+
+.contactItems {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.contactItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.contactIcon {
+  font-size: 1.3rem;
+  margin-top: 0.1rem;
+  flex-shrink: 0;
+}
+
+.contactLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin: 0 0 0.2rem;
+}
+
+.contactValue {
+  font-size: 0.95rem;
+  color: #111827;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* ── FORM COL ─────────────────────────── */
+.formCol {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #374151;
+  letter-spacing: 0.01em;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  box-sizing: border-box;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #9ca3af;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: #2563eb;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+  padding-right: 2.2rem;
+  cursor: pointer;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.6;
+}
+
+.submitBtn {
+  align-self: flex-start;
+  padding: 0.7rem 1.8rem;
+  background: #2563eb;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s, opacity 0.15s;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+.submitBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submitBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── SUCCESS STATE ────────────────────── */
+.successBox {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.successIcon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.successTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: #0f172a;
+  margin: 0 0 0.75rem;
+}
+
+.successText {
+  font-size: 0.95rem;
+  color: #6b7280;
+  line-height: 1.7;
+  margin: 0 0 2rem;
+}
+
+.resetBtn {
+  padding: 0.6rem 1.4rem;
+  background: transparent;
+  color: #2563eb;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1.5px solid #2563eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.resetBtn:hover {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* ── ANIMATION ────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── RESPONSIVE ───────────────────────── */
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .infoCol {
+    position: static;
+  }
+
+  .fieldRow {
+    grid-template-columns: 1fr;
+  }
+
+  .formCol {
+    padding: 1.75rem;
+  }
+
+  .hero {
+    padding: 5rem 1.5rem 4rem;
+  }
+}
