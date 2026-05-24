@@ -1,0 +1,329 @@
+.header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: rgba(247, 248, 252, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e5e7eb;
+  z-index: 1000;
+}
+
+.headerContainer {
+  max-width: 1280px;
+  margin: auto;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0058be;
+}
+
+.backButton {
+  font-size: 15px;
+  font-weight: 500;
+  color: #334155;
+}
+
+.hero {
+  margin-bottom: 48px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: #e8f0ff;
+  border: 1px solid #c7d7ff;
+  margin-bottom: 28px;
+}
+
+.badgeDot {
+  width: 8px;
+  height: 8px;
+  background: #047857;
+  border-radius: 50%;
+}
+
+.badgeText {
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  color: #0058be;
+}
+
+.heroTitle {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 72px;
+  line-height: 1.05;
+  font-weight: 800;
+  max-width: 800px;
+  margin-bottom: 24px;
+  color: #0f172a;
+}
+
+.heroTitle span {
+  color: #0058be;
+}
+
+.heroDescription {
+  max-width: 700px;
+  font-size: 20px;
+  line-height: 1.7;
+  color: #475569;
+}
+
+.citizenCard {
+  background: white;
+  border-radius: 32px;
+  overflow: hidden;
+  transition: 0.3s ease;
+}
+
+.adminCard {
+  background: #e8eefc;
+  border-radius: 32px;
+  overflow: hidden;
+  transition: 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.citizenCard:hover,
+.adminCard:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(0, 88, 190, 0.08);
+}
+
+.citizenImageWrapper {
+  height: 320px;
+  position: relative;
+}
+
+.citizenImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(255,255,255,0.92),
+    transparent
+  );
+}
+
+.citizenContent {
+  padding: 40px;
+}
+
+.iconBox,
+.adminIconBox {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  font-size: 24px;
+}
+
+.iconBox {
+  background: #e8f0ff;
+}
+
+.adminIconBox {
+  background: white;
+}
+
+.cardTitle {
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+
+.cardDescription {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #475569;
+  margin-bottom: 36px;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.primaryButton {
+  background: #0058be;
+  color: white;
+  padding: 16px 28px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  transition: 0.2s;
+}
+
+.primaryButton:hover {
+  background: #00479a;
+}
+
+.secondaryButton {
+  background: #dbe7ff;
+  color: #0058be;
+  padding: 16px 28px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.adminContent {
+  padding: 40px;
+}
+
+.analyticsBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.7);
+  padding: 16px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #334155;
+}
+
+.analyticsDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #047857;
+}
+
+.adminButton {
+  width: 100%;
+  background: #07152d;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 18px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.adminImageWrapper {
+  height: 160px;
+}
+
+.adminImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.footer {
+  margin-top: 80px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.footerContainer {
+  max-width: 1280px;
+  margin: auto;
+  padding: 40px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.footerLogo {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.footerText {
+  max-width: 320px;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.footerLinks {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.footerLinks a {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.footerIcons {
+  display: flex;
+  gap: 12px;
+}
+
+.circleIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 1024px) {
+  .heroTitle {
+    font-size: 52px;
+  }
+}
+
+@media (max-width: 768px) {
+  .heroTitle {
+    font-size: 40px;
+  }
+
+  .heroDescription {
+    font-size: 18px;
+  }
+
+  .citizenContent,
+  .adminContent {
+    padding: 28px;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+  }
+
+  .primaryButton,
+  .secondaryButton {
+    width: 100%;
+    text-align: center;
+  }
+
+  .footerContainer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 28px;
+  }
+}
