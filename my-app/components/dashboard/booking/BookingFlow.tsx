@@ -3,12 +3,18 @@
 import React, { useMemo, useState } from "react";
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import DashboardBottomNav from "@/components/dashboard/DashboardBottomNav";
-import BookingStepper, { type BookingStep } from "@/components/dashboard/booking/BookingStepper";
+import BookingStepper, {
+  type BookingStep,
+} from "@/components/dashboard/booking/BookingStepper";
 import BookingSelectStation, {
   type StationOption,
 } from "@/components/dashboard/booking/BookingSelectStation";
-import BookingChooseFuel, { type FuelOption } from "@/components/dashboard/booking/BookingChooseFuel";
-import BookingPickSlot, { type SlotOption } from "@/components/dashboard/booking/BookingPickSlot";
+import BookingChooseFuel, {
+  type FuelOption,
+} from "@/components/dashboard/booking/BookingChooseFuel";
+import BookingPickSlot, {
+  type SlotOption,
+} from "@/components/dashboard/booking/BookingPickSlot";
 import BookingSummaryPanel from "@/components/dashboard/booking/BookingSummaryPanel";
 
 const STATIONS: StationOption[] = [
@@ -130,7 +136,8 @@ export default function BookingFlow() {
 
         {confirmed && (
           <div style={styles.successBanner} role="status">
-            Booking confirmed! Reference #MT-2934-X — see you at {station?.name}.
+            Booking confirmed! Reference #MT-2934-X — see you at {station?.name}
+            .
           </div>
         )}
 

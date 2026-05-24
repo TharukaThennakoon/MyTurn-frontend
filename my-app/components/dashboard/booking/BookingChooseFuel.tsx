@@ -70,7 +70,12 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#2563eb",
     marginBottom: 4,
   },
-  title: { fontSize: 22, fontWeight: 800, color: "#0f172a", margin: "0 0 16px" },
+  title: {
+    fontSize: 22,
+    fontWeight: 800,
+    color: "#0f172a",
+    margin: "0 0 16px",
+  },
   grid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 },
   card: {
     textAlign: "left",
@@ -100,7 +105,12 @@ const styles: Record<string, React.CSSProperties> = {
     flexShrink: 0,
   },
   cardInfo: { flex: 1 },
-  cardName: { fontSize: 14, fontWeight: 700, color: "#0f172a", margin: "0 0 4px" },
+  cardName: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: "#0f172a",
+    margin: "0 0 4px",
+  },
   cardDesc: { fontSize: 11, color: "#64748b", margin: 0 },
   price: {
     fontSize: 20,
