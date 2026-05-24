@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type NavTab = "home" | "stations" | "bookings" | "profile";
 
@@ -9,22 +10,24 @@ interface DashboardBottomNavProps {
   onChange?: (tab: NavTab) => void;
 }
 
-const TABS: { id: NavTab; icon: string; label: string }[] = [
-  { id: "home",     icon: "⌂",   label: "HOME"     },
-  { id: "stations", icon: "▦",   label: "STATIONS" },
-  { id: "bookings", icon: "📋",  label: "BOOKINGS" },
-  { id: "profile",  icon: "👤",  label: "PROFILE"  },
+const TABS: { id: NavTab; icon: string; label: string; href: string }[] = [
+  { id: "home", icon: "⌂", label: "HOME", href: "/dashboard" },
+  { id: "stations", icon: "▦", label: "STATIONS", href: "/dashboard/stations" },
+  { id: "bookings", icon: "📋", label: "BOOKINGS", href: "/dashboard/booking" },
+  { id: "profile", icon: "👤", label: "PROFILE", href: "/dashboard/profile" },
 ];
 
 export default function DashboardBottomNav({
   active = "home",
   onChange,
 }: DashboardBottomNavProps) {
+  const router = useRouter();
   const [current, setCurrent] = useState<NavTab>(active);
 
-  const handleClick = (tab: NavTab) => {
+  const handleClick = (tab: NavTab, href: string) => {
     setCurrent(tab);
     onChange?.(tab);
+    router.push(href);
   };
 
   return (
@@ -34,7 +37,7 @@ export default function DashboardBottomNav({
         return (
           <button
             key={t.id}
-            onClick={() => handleClick(t.id)}
+            onClick={() => handleClick(t.id, t.href)}
             style={{
               ...styles.tab,
               ...(isActive ? styles.tabActive : {}),
@@ -48,9 +51,7 @@ export default function DashboardBottomNav({
             >
               {t.icon}
             </span>
-            {isActive && (
-              <span style={styles.tabLabel}>{t.label}</span>
-            )}
+            {isActive && <span style={styles.tabLabel}>{t.label}</span>}
           </button>
         );
       })}
