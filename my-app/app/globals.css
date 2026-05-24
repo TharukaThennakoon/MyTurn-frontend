@@ -1,9 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 * {
+@import "tailwindcss";
+
+*, *::before, *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 html {
@@ -17,33 +18,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Responsive utility */
-@media (max-width: 768px) {
-  .desktop-only {
-    display: none !important;
+@layer components {
+  .input {
+    @apply w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500;
   }
-  .mobile-only {
-    display: flex !important;
-  }
-  .grid-2col {
-    grid-template-columns: 1fr !important;
-  }
-  .grid-4col {
-    grid-template-columns: 1fr 1fr !important;
-  }
-  .hero-title {
-    font-size: 38px !important;
-  }
-  .social-proof-inner {
-    flex-direction: column !important;
-    gap: 20px !important;
-  }
-  .social-divider {
-    width: 100% !important;
-    height: 1px !important;
-  }
-  .features-layout {
-    grid-template-columns: 1fr !important;
+  .btn-primary {
+    @apply w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition cursor-pointer;
   }
   .footer-inner {
     flex-direction: column !important;
@@ -64,3 +44,4 @@ body {
   }
 }
 
+}
