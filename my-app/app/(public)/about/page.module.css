@@ -1,0 +1,341 @@
+/* ─────────────────────────────────────────
+   page.module.css  –  About page
+   Consistent with (public) layout system
+───────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap');
+
+/* ── PAGE SHELL ───────────────────────── */
+.page {
+  font-family: 'DM Sans', sans-serif;
+  color: #111827;
+}
+
+/* ── HERO ─────────────────────────────── */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: #0f172a;
+  padding: 7rem 1.5rem 6rem;
+  text-align: center;
+}
+
+/* Subtle grid texture */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(37,99,235,0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37,99,235,0.12) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+}
+
+/* Blue glow blob */
+.hero::after {
+  content: '';
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 560px;
+  height: 340px;
+  background: radial-gradient(ellipse, rgba(37,99,235,0.35) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.heroInner {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #60a5fa;
+  background: rgba(37,99,235,0.15);
+  border: 1px solid rgba(96,165,250,0.3);
+  padding: 0.3rem 0.9rem;
+  border-radius: 99px;
+  margin-bottom: 1.5rem;
+  animation: fadeUp 0.5s ease both;
+}
+
+.title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 400;
+  color: #f8fafc;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 1.5rem;
+  animation: fadeUp 0.55s 0.08s ease both;
+}
+
+.title em {
+  font-style: italic;
+  color: #60a5fa;
+}
+
+.subtitle {
+  font-size: 1.05rem;
+  color: #94a3b8;
+  line-height: 1.75;
+  max-width: 580px;
+  margin: 0 auto;
+  animation: fadeUp 0.55s 0.16s ease both;
+}
+
+/* ── SECTION WRAPPER ──────────────────── */
+.section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 5rem 1.5rem;
+}
+
+.section + .section {
+  padding-top: 0;
+}
+
+/* ── MISSION ──────────────────────────── */
+.missionLayout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.sectionLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #2563eb;
+  margin-bottom: 0.75rem;
+}
+
+.sectionTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-weight: 400;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0 0 1.25rem;
+}
+
+.text {
+  font-size: 1rem;
+  color: #4b5563;
+  line-height: 1.8;
+  margin: 0;
+}
+
+/* Accent block on the right side of mission */
+.missionAccent {
+  position: relative;
+  background: #eff6ff;
+  border-radius: 16px;
+  padding: 2.5rem;
+  border: 1px solid #bfdbfe;
+  overflow: hidden;
+}
+
+.missionAccent::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: rgba(37,99,235,0.08);
+}
+
+.statRow {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.statNum {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.2rem;
+  color: #2563eb;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.statDesc {
+  font-size: 0.88rem;
+  color: #374151;
+  line-height: 1.5;
+}
+
+/* ── DIVIDER ──────────────────────────── */
+.divider {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.dividerLine {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ── VALUES ───────────────────────────── */
+.valuesHeader {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 2rem 1.75rem;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #2563eb;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+
+.card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 30px rgba(37,99,235,0.1);
+  transform: translateY(-3px);
+}
+
+.card:hover::after {
+  transform: scaleX(1);
+}
+
+.cardIcon {
+  font-size: 1.75rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.cardTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: #0f172a;
+  margin: 0 0 0.5rem;
+}
+
+.cardText {
+  font-size: 0.88rem;
+  color: #6b7280;
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* ── CTA BAND ─────────────────────────── */
+.cta {
+  background: #0f172a;
+  text-align: center;
+  padding: 5rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta::before {
+  content: '';
+  position: absolute;
+  bottom: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  height: 300px;
+  background: radial-gradient(ellipse, rgba(37,99,235,0.3) 0%, transparent 70%);
+}
+
+.ctaInner {
+  position: relative;
+  z-index: 1;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.ctaTitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  color: #f8fafc;
+  font-weight: 400;
+  margin: 0 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+.ctaText {
+  color: #94a3b8;
+  font-size: 1rem;
+  margin: 0 0 2rem;
+  line-height: 1.7;
+}
+
+.ctaBtn {
+  display: inline-block;
+  padding: 0.75rem 2rem;
+  background: #2563eb;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.ctaBtn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+/* ── ANIMATION ────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── RESPONSIVE ───────────────────────── */
+@media (max-width: 768px) {
+  .missionLayout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .hero {
+    padding: 5rem 1.5rem 4rem;
+  }
+}

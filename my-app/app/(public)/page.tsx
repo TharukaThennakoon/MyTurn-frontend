@@ -8,14 +8,14 @@ import Features from "@/components/sections/Features";
 export default function HomePage() {
   return (
     <>
-      <Navbar />
+      
       <main style={{ paddingTop: 64 }}>
         <Hero />
         <SocialProof />
         <HowItWorks />
         <Features />
       </main>
-      <Footer />
+      
     </>
   );
 }
