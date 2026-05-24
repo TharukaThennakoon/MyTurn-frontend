@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import type { StationOption } from "@/components/dashboard/booking/BookingSelectStation";
 import type { FuelOption } from "@/components/dashboard/booking/BookingChooseFuel";
 import type { SlotOption } from "@/components/dashboard/booking/BookingPickSlot";
@@ -89,13 +90,15 @@ export default function BookingSummaryPanel({
         </div>
       </div>
 
-      <div style={styles.mapPreview} aria-hidden>
-        <div style={styles.mapDots}>
-          <span style={{ ...styles.dot, top: "30%", left: "40%" }} />
-          <span style={{ ...styles.dot, top: "55%", left: "60%" }} />
-          <span style={{ ...styles.dotActive, top: "45%", left: "48%" }} />
-        </div>
-        <span style={styles.mapLabel}>Route preview</span>
+      <div style={styles.mapPreview}>
+        <Image
+          src="/images/route-preview.png"
+          alt="Route preview with map tiles and directions"
+          width={388}
+          height={164}
+          sizes="(max-width: 768px) 100vw, 340px"
+          style={styles.mapImage}
+        />
       </div>
     </aside>
   );
@@ -220,42 +223,18 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.4,
   },
   mapPreview: {
-    height: 100,
+    width: "100%",
     borderRadius: 12,
-    background: "linear-gradient(180deg, #e0f2fe 0%, #bae6fd 100%)",
-    position: "relative",
     overflow: "hidden",
     borderWidth: 1,
     borderStyle: "solid",
-    borderColor: "#bae6fd",
+    borderColor: "#e2e8f0",
+    boxShadow: "0 2px 8px rgba(15, 23, 42, 0.06)",
+    lineHeight: 0,
   },
-  mapDots: { position: "absolute", inset: 0 },
-  dot: {
-    position: "absolute",
-    width: 8,
-    height: 8,
-    borderRadius: "50%",
-    background: "#64748b",
-    transform: "translate(-50%, -50%)",
-  },
-  dotActive: {
-    position: "absolute",
-    width: 12,
-    height: 12,
-    borderRadius: "50%",
-    background: "#2563eb",
-    borderWidth: 2,
-    borderStyle: "solid",
-    borderColor: "#fff",
-    boxShadow: "0 2px 6px rgba(37,99,235,0.4)",
-    transform: "translate(-50%, -50%)",
-  },
-  mapLabel: {
-    position: "absolute",
-    bottom: 8,
-    left: 10,
-    fontSize: 10,
-    fontWeight: 600,
-    color: "#0369a1",
+  mapImage: {
+    display: "block",
+    width: "100%",
+    height: "auto",
   },
 };
