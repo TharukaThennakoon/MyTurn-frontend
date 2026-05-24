@@ -1,43 +1,43 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 type NavTab = "home" | "stations" | "bookings" | "profile";
 
 interface DashboardBottomNavProps {
   active?: NavTab;
-  onChange?: (tab: NavTab) => void;
 }
 
-const TABS: { id: NavTab; icon: string; label: string }[] = [
-  { id: "home",     icon: "⌂",   label: "HOME"     },
-  { id: "stations", icon: "▦",   label: "STATIONS" },
-  { id: "bookings", icon: "📋",  label: "BOOKINGS" },
-  { id: "profile",  icon: "👤",  label: "PROFILE"  },
+const TABS: { id: NavTab; icon: string; label: string; href: string }[] = [
+  { id: "home", icon: "⌂", label: "HOME", href: "/dashboard" },
+  { id: "stations", icon: "▦", label: "STATIONS", href: "/dashboard" },
+  { id: "bookings", icon: "📋", label: "BOOKINGS", href: "/dashboard/bookings" },
+  { id: "profile", icon: "👤", label: "PROFILE", href: "/dashboard" },
 ];
 
-export default function DashboardBottomNav({
-  active = "home",
-  onChange,
-}: DashboardBottomNavProps) {
-  const [current, setCurrent] = useState<NavTab>(active);
+function tabFromPath(pathname: string): NavTab {
+  if (pathname.startsWith("/dashboard/bookings")) return "bookings";
+  return "home";
+}
 
-  const handleClick = (tab: NavTab) => {
-    setCurrent(tab);
-    onChange?.(tab);
-  };
+export default function DashboardBottomNav({ active }: DashboardBottomNavProps) {
+  const pathname = usePathname();
+  const current = active ?? tabFromPath(pathname);
 
   return (
     <nav style={styles.nav}>
       {TABS.map((t) => {
         const isActive = t.id === current;
         return (
-          <button
+          <Link
             key={t.id}
-            onClick={() => handleClick(t.id)}
+            href={t.href}
             style={{
               ...styles.tab,
               ...(isActive ? styles.tabActive : {}),
+              textDecoration: "none",
             }}
           >
             <span
@@ -48,10 +48,8 @@ export default function DashboardBottomNav({
             >
               {t.icon}
             </span>
-            {isActive && (
-              <span style={styles.tabLabel}>{t.label}</span>
-            )}
-          </button>
+            {isActive && <span style={styles.tabLabel}>{t.label}</span>}
+          </Link>
         );
       })}
     </nav>
