@@ -14,7 +14,11 @@ export default function UserProfile() {
         <section style={styles.hero} className="profile-hero">
           <div style={styles.avatarCard}>
             <div style={styles.avatarIllustration}>
-              <span style={styles.avatarFace}>🧑</span>
+              <img 
+                src="/images/profile-avatar.png" 
+                alt="Adrian Thorne" 
+                style={styles.avatarImage}
+              />
             </div>
             <button type="button" style={styles.editAvatarBtn} aria-label="Edit photo">
               ✎
@@ -85,7 +89,11 @@ export default function UserProfile() {
           <div style={styles.vehicleRow}>
             <div style={styles.vehicleImageWrap}>
               <div style={styles.vehicleImagePlaceholder}>
-                <span style={styles.vehicleEmoji}>🚗</span>
+                <img 
+                  src="/images/car.png" 
+                  alt="Tesla Model Y" 
+                  style={styles.vehicleImage}
+                />
               </div>
             </div>
             <div style={styles.vehicleMeta}>
@@ -221,6 +229,12 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
   },
   avatarFace: { fontSize: 56 },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    borderRadius: 14,
+  },
   editAvatarBtn: {
     position: "absolute",
     bottom: -4,
@@ -431,6 +445,12 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: "center",
   },
   vehicleEmoji: { fontSize: 40 },
+  vehicleImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "contain",
+    padding: "8px",
+  },
   vehicleMeta: {
     display: "flex",
     flexWrap: "wrap",
