@@ -36,6 +36,15 @@ body {
   }
 }
 
+@media (max-width: 768px) {
+  .booking-flow-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .booking-slot-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
 @media (min-width: 769px) {
   .mobile-only {
     display: none;
