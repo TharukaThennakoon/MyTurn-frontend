@@ -60,6 +60,17 @@ button {
   .dashboard-insights-grid {
     grid-template-columns: 1fr 1fr !important;
   }
+  .profile-two-col {
+    grid-template-columns: 1fr !important;
+  }
+  .profile-settings-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .profile-hero {
+    flex-direction: column !important;
+    text-align: center;
+    align-items: center !important;
+  }
 }
 
 @media (min-width: 769px) {
