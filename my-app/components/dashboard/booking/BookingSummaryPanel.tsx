@@ -46,13 +46,19 @@ export default function BookingSummaryPanel({
             icon="⛽"
             label="FUEL & PRICING"
             value={fuel ? `${fuel.name} (95)` : "—"}
-            sub={fuel ? `${fuel.pricePerLiter} • Pay at Station` : "Select fuel type"}
+            sub={
+              fuel
+                ? `${fuel.pricePerLiter} • Pay at Station`
+                : "Select fuel type"
+            }
           />
           <SummaryRow
             icon="🕐"
             label="SCHEDULE"
             value={slot ? `Today, ${slot.time}` : "—"}
-            sub={slot ? "Arrival window: 10:40 – 11:00 AM" : "Select a time slot"}
+            sub={
+              slot ? "Arrival window: 10:40 – 11:00 AM" : "Select a time slot"
+            }
           />
 
           <div style={styles.divider} />

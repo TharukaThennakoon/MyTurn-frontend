@@ -14,13 +14,17 @@ export default function UserProfile() {
         <section style={styles.hero} className="profile-hero">
           <div style={styles.avatarCard}>
             <div style={styles.avatarIllustration}>
-              <img 
-                src="/images/profile-avatar.png" 
-                alt="Adrian Thorne" 
+              <img
+                src="/images/profile-avatar.png"
+                alt="Adrian Thorne"
                 style={styles.avatarImage}
               />
             </div>
-            <button type="button" style={styles.editAvatarBtn} aria-label="Edit photo">
+            <button
+              type="button"
+              style={styles.editAvatarBtn}
+              aria-label="Edit photo"
+            >
               ✎
             </button>
           </div>
@@ -47,7 +51,11 @@ export default function UserProfile() {
               <DetailField label="FULL NAME" value="Adrian Thorne" />
               <DetailField label="PHONE NUMBER" value="+1 (555) 012-3456" />
             </div>
-            <DetailField label="EMAIL ADDRESS" value="adrian.thorne@myturn.com" full />
+            <DetailField
+              label="EMAIL ADDRESS"
+              value="adrian.thorne@myturn.com"
+              full
+            />
             <DetailField
               label="PRIMARY RESIDENCE"
               value="742 Evergreen Terrace, Springfield"
@@ -89,9 +97,9 @@ export default function UserProfile() {
           <div style={styles.vehicleRow}>
             <div style={styles.vehicleImageWrap}>
               <div style={styles.vehicleImagePlaceholder}>
-                <img 
-                  src="/images/car.png" 
-                  alt="Tesla Model Y" 
+                <img
+                  src="/images/car.png"
+                  alt="Tesla Model Y"
                   style={styles.vehicleImage}
                 />
               </div>

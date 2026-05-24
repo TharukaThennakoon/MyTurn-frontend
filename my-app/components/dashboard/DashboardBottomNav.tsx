@@ -15,13 +15,14 @@ const INACTIVE_COLOR = "#94a3b8";
 
 const TABS: { id: NavTab; label: string; href: string }[] = [
   { id: "home", label: "HOME", href: "/dashboard" },
-  { id: "stations", label: "STATIONS", href: "/dashboard" },
+  { id: "stations", label: "STATIONS", href: "/dashboard/stations" },
   { id: "bookings", label: "BOOKINGS", href: "/dashboard/bookings" },
   { id: "profile", label: "PROFILE", href: "/dashboard/profile" },
 ];
 
 function tabFromPath(pathname: string): NavTab {
   if (pathname.startsWith("/dashboard/bookings")) return "bookings";
+  if (pathname.startsWith("/dashboard/stations")) return "stations";
   if (pathname.startsWith("/dashboard/profile")) return "profile";
   return "home";
 }

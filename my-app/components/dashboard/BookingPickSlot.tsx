@@ -160,9 +160,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "12px 14px",
     background: "#eff6ff",
     borderRadius: 10,
-    borderWidth: 1,
-    borderStyle: "solid",
-    borderColor: "#bfdbfe",
+    border: "1px solid #bfdbfe",
   },
   infoIcon: {
     width: 20,

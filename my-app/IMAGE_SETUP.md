@@ -5,26 +5,30 @@
 To complete the profile and vehicle image integration, please add the following image files to the `public/images/` folder:
 
 ### 1. **profile-avatar.png** (120x120px recommended)
-   - Location: `public/images/profile-avatar.png`
-   - Description: User profile avatar image for Adrian Thorne
-   - Current state: Placeholder for `/images/profile-avatar.png`
-   - Used in: Profile section header (Hero section)
+
+- Location: `public/images/profile-avatar.png`
+- Description: User profile avatar image for Adrian Thorne
+- Current state: Placeholder for `/images/profile-avatar.png`
+- Used in: Profile section header (Hero section)
 
 ### 2. **car.png** (160x90px recommended)
-   - Location: `public/images/car.png`
-   - Description: Yellow vehicle image for Tesla Model Y
-   - Current state: Placeholder for `/images/car.png`
-   - Used in: Vehicle Registration section
+
+- Location: `public/images/car.png`
+- Description: Yellow vehicle image for Tesla Model Y
+- Current state: Placeholder for `/images/car.png`
+- Used in: Vehicle Registration section
 
 ## Image Specifications
 
 ### Profile Avatar (profile-avatar.png)
+
 - Dimensions: 120x120 pixels
 - Format: PNG with transparency recommended
 - Style: User profile/headshot image
 - Will be displayed with rounded corners and shadow effect
 
 ### Vehicle Image (car.png)
+
 - Dimensions: 160x90 pixels (aspect ratio ~16:9)
 - Format: PNG with transparency recommended
 - Style: Car image on dark background
@@ -42,6 +46,7 @@ To complete the profile and vehicle image integration, please add the following 
 ## Code References
 
 The following components have been updated to use these images:
+
 - `components/dashboard/profile/UserProfile.tsx` (lines with `<img>` tags)
 - Styles for image sizing and positioning have been added
 
