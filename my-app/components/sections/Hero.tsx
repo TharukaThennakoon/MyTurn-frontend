@@ -125,7 +125,7 @@ export default function Hero() {
         {/* CTA buttons */}
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <a
-            href="/get-started"
+            href="/choose-role"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -163,7 +163,7 @@ export default function Hero() {
           </a>
 
           <a
-            href="#stations"
+            href="/viewStation"
             style={{
               display: "inline-flex",
               alignItems: "center",
