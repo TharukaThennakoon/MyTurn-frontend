@@ -47,9 +47,9 @@ export default function PublicLayout({
 
           {/* CTA buttons */}
           <div className={styles.actions}>
-            <Link href="/login" className={styles.loginBtn}>
+            {/* <Link href="/login" className={styles.loginBtn}>
               Login
-            </Link>
+            </Link> */}
             <Link href="/choose-role" className={styles.getStartedBtn}>
               Get Started
             </Link>
