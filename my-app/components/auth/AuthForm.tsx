@@ -22,7 +22,7 @@ export default function AuthForm({ type }: Props) {
         </p>
       </div>
 
-      <form className="space-y-4">
+      <form className="space-y-3">
         {/* Full Name — register only */}
         {isRegister && (
           <div>
@@ -98,4 +98,4 @@ export default function AuthForm({ type }: Props) {
       </form>
     </div>
   );
-};
+}
