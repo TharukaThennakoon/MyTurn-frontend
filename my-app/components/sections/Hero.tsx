@@ -118,8 +118,8 @@ export default function Hero() {
             margin: "0 0 36px",
           }}
         >
-          Experience the digital concierge for high-demand services. Secure your spot
-          in real-time and arrive exactly when it&apos;s your turn.
+          Experience the digital concierge for high-demand services. Secure your
+          spot in real-time and arrive exactly when it&apos;s your turn.
         </p>
 
         {/* CTA buttons */}
@@ -141,7 +141,8 @@ export default function Hero() {
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = "#1341b0";
-              e.currentTarget.style.boxShadow = "0 8px 24px rgba(26,86,219,0.4)";
+              e.currentTarget.style.boxShadow =
+                "0 8px 24px rgba(26,86,219,0.4)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = "#1a56db";
@@ -151,7 +152,13 @@ export default function Hero() {
             Get Your Turn
             {/* Arrow icon */}
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3 8h10M9 4l4 4-4 4" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path
+                d="M3 8h10M9 4l4 4-4 4"
+                stroke="#fff"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </a>
 
@@ -171,8 +178,12 @@ export default function Hero() {
               textDecoration: "none",
               transition: "background 0.2s",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.22)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.14)")}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = "rgba(255,255,255,0.22)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = "rgba(255,255,255,0.14)")
+            }
           >
             View Stations
           </a>
