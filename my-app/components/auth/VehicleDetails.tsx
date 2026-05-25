@@ -1,3 +1,6 @@
+"use client";
+
+
 export default function VehicleDetails() {
   return (
     <div className="border-t border-gray-100 pt-4 mt-2">
