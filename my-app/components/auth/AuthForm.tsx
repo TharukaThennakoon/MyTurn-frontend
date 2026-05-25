@@ -22,18 +22,9 @@ export default function AuthForm({ type }: Props) {
         </p>
       </div>
 
-<<<<<<< HEAD
-      <form className="space-y-3">
+      <form className="space-y-4">
         {/* Full Name — register only */}
         {isRegister && (
-=======
-      <p className="text-gray-500 mb-6 text-sm">
-        Join the elite network of efficient fueling.
-      </p>
-
-      <form className="space-y-4">
-        {type === "register" && (
->>>>>>> d0619574b10b9bac9f4f98982d4eeae7b0f579ed
           <div>
             <label htmlFor="full-name" className="sr-only">
               Full Name
@@ -55,11 +46,7 @@ export default function AuthForm({ type }: Props) {
             </label>
             <input
               id="phone-number"
-<<<<<<< HEAD
               type="tel"
-=======
-              type="text"
->>>>>>> d0619574b10b9bac9f4f98982d4eeae7b0f579ed
               placeholder="Phone Number"
               className="input"
             />
@@ -77,10 +64,7 @@ export default function AuthForm({ type }: Props) {
           </div>
         </div>
 
-<<<<<<< HEAD
         {/* Password */}
-=======
->>>>>>> d0619574b10b9bac9f4f98982d4eeae7b0f579ed
         <div>
           <label htmlFor="password" className="sr-only">
             Password
@@ -114,4 +98,4 @@ export default function AuthForm({ type }: Props) {
       </form>
     </div>
   );
-}
+};
