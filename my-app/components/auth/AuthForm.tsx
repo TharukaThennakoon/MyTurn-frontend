@@ -9,7 +9,19 @@ type Props = {
 };
 
 export default function AuthForm({ type }: Props) {
+  const router = useRouter();
   const isRegister = type === "register";
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (isRegister) {
+      router.push("/login");
+    } else {
+      router.push("/dashboard");
+    }
+  };
+  
 
   return (
     <div className="w-full max-w-xs">
@@ -25,7 +37,7 @@ export default function AuthForm({ type }: Props) {
         </p>
       </div>
 
-      <form className="space-y-3">
+      <form className="space-y-3" onSubmit={handleSubmit}>
         {/* Full Name — register only */}
         {isRegister && (
           <div>
