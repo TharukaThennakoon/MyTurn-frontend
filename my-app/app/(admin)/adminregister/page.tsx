@@ -93,7 +93,7 @@ export default function AdminRegisterPage() {
               Your admin account for <strong>{form.stationName}</strong> has been submitted for review.
               We&apos;ll verify your Station Registration ID and notify you at <strong>{form.email}</strong>.
             </p>
-            <Link href="/" className={styles.successBtn}>Back to Home</Link>
+            <Link href="/choose-role" className={styles.successBtn}>Back to Home</Link>
           </div>
         </div>
       </div>

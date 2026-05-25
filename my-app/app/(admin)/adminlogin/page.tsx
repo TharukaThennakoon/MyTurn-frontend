@@ -78,7 +78,12 @@ export default async function AdminLoginPage({
             <label htmlFor="admin-code">Security Code</label>
             <input id="admin-code" type="text" placeholder="One-time code" />
 
-            <button type="submit">Access Dashboard</button>
+            <Link href="/admindashboard">
+      <button type="button">
+        Access Dashboard
+      </button>
+    </Link>
+
           </form>
 
           <p className={styles.bottomText}>
