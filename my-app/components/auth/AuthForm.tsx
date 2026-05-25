@@ -1,5 +1,7 @@
+"use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import VehicleDetails from "./VehicleDetails";
 
 type Props = {
@@ -7,6 +9,7 @@ type Props = {
 };
 
 export default function AuthForm({ type }: Props) {
+  const router = useRouter();
   return (
 <div className="w-full max-w-xs">
       <h2 className="text-2xl font-semibold mb-2">
@@ -72,9 +75,19 @@ export default function AuthForm({ type }: Props) {
 
         {type === "register" && <VehicleDetails />}
 
-        <button className="btn-primary">
-          {type === "register" ? "Create Account →" : "Login →"}
-        </button>
+        <button
+  type="button"
+  className="btn-primary"
+  onClick={() => {
+    if (type === "login") {
+      router.push("/dashboard");
+    } else {
+      router.push("/login");
+    }
+  }}
+>
+  {type === "register" ? "Create Account →" : "Login →"}
+</button>
 
         <p className="text-sm text-center text-gray-500">
           {type === "register"
