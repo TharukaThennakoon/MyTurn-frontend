@@ -1,98 +1,59 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface QueueItem {
-  id: number;
-  plate: string;
-  time: string;
-  status: "scheduled" | "arriving" | "delayed";
-}
-
-interface MetricItem {
-  label: string;
-  value: string;
-  pct: number;
-  color: string;
-  valueClass: string;
-}
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-const QUEUE: QueueItem[] = [
-  { id: 883, plate: "B-4491-ZT", time: "10:15 AM", status: "arriving" },
-  { id: 884, plate: "D-1222-RT", time: "10:20 AM", status: "scheduled" },
-  { id: 885, plate: "F-9031-LL", time: "10:25 AM", status: "scheduled" },
-  { id: 886, plate: "K-8823-WQ", time: "10:30 AM", status: "delayed" },
-  { id: 887, plate: "M-3312-PL", time: "10:35 AM", status: "scheduled" },
-];
-
-const METRICS: MetricItem[] = [
-  { label: "Avg. Serving Time", value: "4.2 Mins", pct: 70,  color: "#1A3DC4", valueClass: styles.metricValueBlue  },
-  { label: "Station Capacity",  value: "88%",      pct: 88,  color: "#10b981", valueClass: styles.metricValueGreen },
-  { label: "Pump Utilization",  value: "74%",      pct: 74,  color: "#f59e0b", valueClass: styles.metricValueAmber },
-];
-
-const STATUS_CLASS: Record<QueueItem["status"], string> = {
-  arriving:  styles.statusArriving,
-  scheduled: styles.statusScheduled,
-  delayed:   styles.statusDelayed,
-};
-
-const NAV_ITEMS = [
-  { label: "Overview",  icon: OverviewIcon  },
-  { label: "Queue",     icon: QueueIcon,    badge: "42" },
-  { label: "Slots",     icon: SlotsIcon     },
-  { label: "Fuel",      icon: FuelIcon      },
-  { label: "Analytics", icon: AnalyticsIcon },
-  { label: "Settings",  icon: SettingsIcon  },
-];
+import Image from "next/image";
 
 // ─── SVG Icons ────────────────────────────────────────────────────────────────
 function OverviewIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 20 20" fill="currentColor">
-      <rect x="2"  y="2"  width="7" height="7" rx="1.5" />
-      <rect x="11" y="2"  width="7" height="7" rx="1.5" />
-      <rect x="2"  y="11" width="7" height="7" rx="1.5" />
+    <svg viewBox="0 0 20 20" fill="currentColor" className={className}>
+      <rect x="2" y="2" width="7" height="7" rx="1.5" />
+      <rect x="11" y="2" width="7" height="7" rx="1.5" />
+      <rect x="2" y="11" width="7" height="7" rx="1.5" />
       <rect x="11" y="11" width="7" height="7" rx="1.5" />
     </svg>
   );
 }
+
 function QueueIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
       <path d="M3 5h14M3 10h14M3 15h8" strokeLinecap="round" />
     </svg>
   );
 }
+
 function SlotsIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
       <circle cx="10" cy="10" r="7" />
       <path d="M10 6v4l2.5 2.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
+
 function FuelIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
       <rect x="3" y="4" width="9" height="13" rx="1.5" />
       <path d="M12 7h2a1 1 0 011 1v2a1 1 0 001 1h0V8.5L14 6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
+
 function AnalyticsIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
       <path d="M3 15l4-5 4 2 6-7" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
+
 function SettingsIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
       <circle cx="10" cy="10" r="2.5" />
       <path
         d="M10 2v2M10 16v2M2 10h2M16 10h2
@@ -104,90 +65,55 @@ function SettingsIcon({ className }: { className?: string }) {
   );
 }
 
-// ─── LiveDot ──────────────────────────────────────────────────────────────────
-function LiveDot() {
-  return (
-    <span className={styles.liveDot}>
-      <span className={styles.liveDotRing} />
-      <span className={styles.liveDotCore} />
-    </span>
-  );
-}
-
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
-  const [stationOpen,    setStationOpen]    = useState(true);
-  const [bookingsPaused, setBookingsPaused] = useState(false);
-  const [liveTime,       setLiveTime]       = useState("");
-  const [activeNav,      setActiveNav]      = useState("Overview");
+  const [activeNav, setActiveNav] = useState("Overview");
+  const router = useRouter();
 
-  // Live clock
-  useEffect(() => {
-    const tick = () =>
-      setLiveTime(
-        new Date().toLocaleTimeString("en-US", {
-          hour:   "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        })
-      );
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
+  const NAV_ITEMS = [
+    { label: "Overview", icon: OverviewIcon },
+    { label: "Queue", icon: QueueIcon },
+    { label: "Slots", icon: SlotsIcon },
+    { label: "Fuel", icon: FuelIcon },
+    { label: "Analytics", icon: AnalyticsIcon },
+    { label: "Settings", icon: SettingsIcon },
+  ];
+
+  const QUEUE_DATA = [
+    { id: "883", plate: "B-4491-ZT", time: "10:15 AM" },
+    { id: "884", plate: "D-1222-RT", time: "10:20 AM" },
+    { id: "885", plate: "F-9031-LL", time: "10:25 AM" },
+  ];
 
   return (
     <div className={styles.root}>
-
       {/* ── Sidebar ─────────────────────────────────────────────────────── */}
       <aside className={styles.sidebar}>
-
-        {/* Brand */}
         <div className={styles.brand}>
-          <div className={styles.brandMark}>
-            <svg viewBox="0 0 16 16" fill="currentColor">
-              <path d="M8 1L2 4v4c0 3.3 2.5 6.4 6 7.2C11.5 14.4 14 11.3 14 8V4L8 1z" />
-            </svg>
-          </div>
-          <div className={styles.brandText}>
-            <span className={styles.brandName}>MyTurn</span>
-            <span className={styles.brandSub}>Admin</span>
-          </div>
+          <h1 className={styles.brandName}>MyTurn Admin</h1>
+          <div className={styles.brandSub}>Station #402</div>
         </div>
 
-        {/* Station badge */}
-        <div className={styles.stationBadge}>
-          <div>
-            <span className={styles.stationBadgeLabel}>Station</span>
-            <span className={styles.stationBadgeValue}>#402</span>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <span className={styles.stationBadgeLabel}>Time</span>
-            <span className={styles.stationBadgeTime}>{liveTime}</span>
-          </div>
-        </div>
-
-        {/* Nav */}
         <nav className={styles.navSection}>
-          <span className={styles.navHeading}>Menu</span>
-
-          {NAV_ITEMS.map(({ label, icon: Icon, badge }) => {
-            const isActive = activeNav === label;
-            return (
-              <button
-                key={label}
-                onClick={() => setActiveNav(label)}
-                className={`${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
-              >
-                <Icon className={styles.navIcon} />
-                {label}
-                {badge && <span className={styles.navBadge}>{badge}</span>}
-              </button>
-            );
-          })}
+          {NAV_ITEMS.map(({ label, icon: Icon }) => (
+            <button
+              key={label}
+              onClick={() => {
+                setActiveNav(label);
+                if (label === "Queue") {
+                  router.push("/adminqueue");
+                } else if (label === "Overview") {
+                  router.push("/admindashboard");
+                }
+              }}
+              className={`${styles.navItem} ${activeNav === label ? styles.navItemActive : ""}`}
+            >
+              <Icon className={styles.navIcon} />
+              {label}
+            </button>
+          ))}
         </nav>
 
-        {/* Footer */}
         <div className={styles.sidebarFooter}>
           <button className={styles.updateBtn}>Update Status</button>
         </div>
@@ -195,187 +121,133 @@ export default function AdminDashboard() {
 
       {/* ── Main ────────────────────────────────────────────────────────── */}
       <div className={styles.main}>
-
         {/* Topbar */}
         <header className={styles.topbar}>
-          <div>
-            <span className={styles.topbarTitle}>MyTurn Dashboard</span>
-            <span className={styles.topbarSub}>Real-time operations · Station #402</span>
-          </div>
+          <div className={styles.topbarTitle}>MyTurn Dashboard</div>
 
           <div className={styles.topbarRight}>
-            {/* Search */}
             <div className={styles.searchBox}>
-              <svg className={styles.searchIcon} fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="2">
-                <circle cx="6.5" cy="6.5" r="4.5" />
-                <path d="M11 11l3 3" strokeLinecap="round" />
+              <svg className={styles.searchIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <input className={styles.searchInput} placeholder="Search tokens…" />
+              <input className={styles.searchInput} placeholder="Search tokens..." />
             </div>
 
-            {/* Bell */}
             <button className={styles.iconBtn}>
-              <svg fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.8">
-                <path d="M10 2a6 6 0 016 6c0 2.5 1 4 1 4H3s1-1.5 1-4a6 6 0 016-6zM8.5 17a1.5 1.5 0 003 0" strokeLinecap="round" />
-              </svg>
-              <span className={styles.notifDot} />
-            </button>
-
-            {/* Help */}
-            <button className={styles.iconBtn}>
-              <svg fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.8">
-                <circle cx="10" cy="10" r="7" />
-                <path d="M10 9v5M10 7h.01" strokeLinecap="round" />
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
             </button>
-
-            {/* Alert */}
-            <button className={`${styles.iconBtn} ${styles.iconBtnAlert}`}>
-              <span>✳</span>
+            <button className={styles.iconBtn}>
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </button>
-
-            {/* Avatar */}
-            <div className={styles.avatar}>OP</div>
+            <button className={`${styles.iconBtn} ${styles.iconBtnRed}`}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L14.2 9H21L15.3 13.5L17.5 21L12 16.5L6.5 21L8.7 13.5L3 9H9.8L12 2Z" />
+              </svg>
+            </button>
+            <div className={styles.avatar}>
+              <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="15" r="7" fill="#94a3b8"/>
+                <path d="M7 36C7 28.8203 12.8203 23 20 23C27.1797 23 33 28.8203 33 36V40H7V36Z" fill="#94a3b8"/>
+              </svg>
+            </div>
           </div>
         </header>
 
         {/* Scrollable body */}
         <div className={styles.body}>
-
           {/* ── KPI Row ──────────────────────────────────────────────── */}
-          <div className={`${styles.kpiGrid} ${styles.animateIn}`}>
-
-            {/* Total Bookings */}
+          <div className={styles.kpiGrid}>
             <div className={styles.statCard}>
               <div className={`${styles.accentBar} ${styles.accentBlue}`} />
-              <div className={styles.statInner}>
-                <div className={styles.statHeader}>
-                  <div className={`${styles.statIconWrap} ${styles.iconBgBlue}`}>
-                    <svg className={styles.iconBlue} fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.8">
-                      <rect x="3" y="5" width="14" height="11" rx="2" />
-                      <path d="M7 5V4a1 1 0 011-1h4a1 1 0 011 1v1M10 10v3M8 11.5h4" strokeLinecap="round" />
-                    </svg>
-                  </div>
-                  <span className={styles.badgeGreen}>
-                    <svg fill="none" viewBox="0 0 10 10" stroke="currentColor" strokeWidth="2">
-                      <path d="M2 7l3-4 3 4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    +12%
-                  </span>
-                </div>
-                <span className={styles.statLabel}>Total Bookings Today</span>
-                <span className={styles.statValue}>1,284</span>
+              <div className={styles.statHeader}>
+                <svg className={`${styles.statIcon} ${styles.iconBlue}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                </svg>
+                <span className={styles.badgeGreen}>
+                  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                  +12%
+                </span>
               </div>
+              <span className={styles.statLabel}>Total Bookings Today</span>
+              <span className={styles.statValue}>1,284</span>
             </div>
 
-            {/* Active Queue */}
             <div className={styles.statCard}>
               <div className={`${styles.accentBar} ${styles.accentAmber}`} />
-              <div className={styles.statInner}>
-                <div className={styles.statHeader}>
-                  <div className={`${styles.statIconWrap} ${styles.iconBgAmber}`}>
-                    <svg className={styles.iconAmber} fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.8">
-                      <circle cx="8" cy="7" r="3" />
-                      <circle cx="13" cy="7" r="2" />
-                      <path d="M2 17c0-3 2.7-5 6-5s6 2 6 5M17 17c0-2-1.5-3.8-4-4.5" strokeLinecap="round" />
-                    </svg>
-                  </div>
-                  <span className={styles.badgeLive}>
-                    <LiveDot />
-                    Live
-                  </span>
-                </div>
-                <span className={styles.statLabel}>Active Queue Count</span>
-                <span className={styles.statValue}>42</span>
+              <div className={styles.statHeader}>
+                <svg className={`${styles.statIcon} ${styles.iconAmber}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span className={styles.badgeLive}>
+                  <div className={styles.liveDot} />
+                  Live
+                </span>
               </div>
+              <span className={styles.statLabel}>Active Queue Count</span>
+              <span className={styles.statValue}>42</span>
             </div>
 
-            {/* Upcoming Slots */}
             <div className={styles.statCard}>
               <div className={`${styles.accentBar} ${styles.accentGreen}`} />
-              <div className={styles.statInner}>
-                <div className={styles.statHeader}>
-                  <div className={`${styles.statIconWrap} ${styles.iconBgGreen}`}>
-                    <svg className={styles.iconGreen} fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.8">
-                      <rect x="3" y="4" width="14" height="13" rx="2" />
-                      <path d="M7 2v4M13 2v4M3 9h14" strokeLinecap="round" />
-                    </svg>
-                  </div>
-                </div>
-                <span className={styles.statLabel}>Upcoming Slots (Next Hr)</span>
-                <span className={styles.statValue}>156</span>
+              <div className={styles.statHeader}>
+                <svg className={`${styles.statIcon} ${styles.iconGreen}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
               </div>
+              <span className={styles.statLabel}>Upcoming Slots (Next Hr)</span>
+              <span className={styles.statValue}>156</span>
             </div>
 
-            {/* Fuel Levels */}
             <div className={styles.statCard}>
               <div className={`${styles.accentBar} ${styles.accentRed}`} />
-              <div className={styles.statInner}>
-                <div className={styles.statHeader}>
-                  <div className={`${styles.statIconWrap} ${styles.iconBgRed}`}>
-                    <svg className={styles.iconRed} fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="1.8">
-                      <rect x="3" y="4" width="9" height="13" rx="1.5" />
-                      <path d="M12 7h2a1 1 0 011 1v5M10 9h2" strokeLinecap="round" />
-                    </svg>
-                  </div>
-                  <span className={styles.badgeRed}>CRITICAL</span>
-                </div>
-                <span className={styles.statLabel}>Fuel Levels (P / D)</span>
-                <span className={styles.statValue}>12% / 48%</span>
+              <div className={styles.statHeader}>
+                <svg className={`${styles.statIcon} ${styles.iconRed}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <rect x="4" y="5" width="10" height="16" rx="2" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}/>
+                  <path d="M14 8h2a2 2 0 012 2v2a2 2 0 002 2h0V9l-3-4" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}/>
+                </svg>
+                <span className={styles.badgeRed}>CRITICAL</span>
               </div>
+              <span className={styles.statLabel}>Fuel Levels (P/D)</span>
+              <span className={styles.statValue}>12% / 48%</span>
             </div>
           </div>
 
           {/* ── Mid row ─────────────────────────────────────────────── */}
-          <div className={`${styles.midGrid} ${styles.animateIn}`}>
-
+          <div className={styles.midGrid}>
             {/* Now Serving */}
             <div className={styles.nowServing}>
-              <div className={styles.nowServingDeco1} />
-              <div className={styles.nowServingDeco2} />
-
-              {/* Header */}
               <div className={styles.nowServingHeader}>
                 <span className={styles.nowServingPill}>
-                  Now Serving
-                  <LiveDot />
+                  NOW SERVING
+                  <div className={styles.liveDot} />
                 </span>
-                <span className={styles.nowServingCount}>Token #882 of 1,284</span>
               </div>
 
-              {/* Token */}
               <span className={styles.nowServingSubLabel}>Token Identifier</span>
               <div className={styles.nowServingTokenRow}>
-                <span className={styles.tokenId}>#TK–882</span>
+                <div className={styles.tokenId}>#TK-882</div>
                 <div className={styles.vehiclePlateBox}>
-                  <span className={styles.vehiclePlateLabel}>Vehicle Plate</span>
+                  <span className={styles.vehiclePlateLabel}>VEHICLE PLATE</span>
                   <span className={styles.vehiclePlateValue}>W-7712 X</span>
                 </div>
               </div>
 
-              {/* Progress */}
-              <div className={styles.progressSection}>
-                <div className={styles.progressMeta}>
-                  <span>Filling progress</span>
-                  <span>~3 min remaining</span>
-                </div>
-                <div className={styles.progressTrack}>
-                  <div className={styles.progressFill} />
-                </div>
-              </div>
-
-              {/* Actions */}
               <div className={styles.actionRow}>
                 <button className={styles.btnComplete}>
-                  <svg fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M2 8l4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                   Complete Filling
                 </button>
                 <button className={styles.btnNoShow}>
-                  <svg fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="2">
-                    <circle cx="8" cy="8" r="6" />
-                    <path d="M6 6l4 4M10 6L6 10" strokeLinecap="round" />
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                   </svg>
                   No Show
                 </button>
@@ -384,124 +256,63 @@ export default function AdminDashboard() {
 
             {/* Right panel */}
             <div className={styles.rightPanel}>
-
-              {/* Station Status toggle */}
-              <button
-                onClick={() => setStationOpen((v) => !v)}
-                className={`${styles.stationStatusBtn} ${stationOpen ? styles.stationOpen : styles.stationClosed}`}
-              >
-                <div className={styles.stationIconWrap}>
-                  <svg fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="2">
-                    <path d="M10 3v3M10 14v3M6 6l-2-2M14 6l2-2M6 14l-2 2M14 14l2 2M3 10H6M14 10h3" strokeLinecap="round" />
-                    <circle cx="10" cy="10" r="3" />
-                  </svg>
-                </div>
+              <div className={styles.stationStatusBtn}>
+                <svg className={styles.stationIconWrap} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
                 <div>
                   <span className={styles.stationLabel}>Station Status</span>
-                  <span className={styles.stationSub}>
-                    Station is currently{" "}
-                    <strong>{stationOpen ? "OPEN" : "CLOSED"}</strong>
-                  </span>
+                  <span className={styles.stationSub}>Station is currently OPEN</span>
                 </div>
-                <div className={`${styles.toggle} ${stationOpen ? styles.toggleOn : styles.toggleOff}`}>
-                  <div className={styles.toggleKnob} />
-                </div>
-              </button>
+              </div>
 
-              {/* Quick actions */}
               <div className={styles.quickActions}>
                 <button className={styles.btnFuelUpdate}>
-                  <div className={styles.btnFuelIconWrap}>
-                    <svg fill="none" viewBox="0 0 18 18" stroke="currentColor" strokeWidth="1.8">
-                      <rect x="2" y="3" width="14" height="12" rx="2" />
-                      <path d="M6 3V1M12 3V1M2 7h14" strokeLinecap="round" />
-                    </svg>
-                  </div>
+                  <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
                   <span className={styles.btnFuelLabel}>Update Fuel Availability</span>
                 </button>
 
-                <button
-                  onClick={() => setBookingsPaused((v) => !v)}
-                  className={`${styles.btnPause} ${bookingsPaused ? styles.btnPausePaused : styles.btnPauseActive}`}
-                >
-                  <div className={styles.btnPauseIconWrap}>
-                    {bookingsPaused ? (
-                      <svg fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="2">
-                        <path d="M5 3l8 5-8 5V3z" strokeLinejoin="round" />
-                      </svg>
-                    ) : (
-                      <svg fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="2.2">
-                        <rect x="4"   y="3" width="2.5" height="10" rx="1" />
-                        <rect x="9.5" y="3" width="2.5" height="10" rx="1" />
-                      </svg>
-                    )}
-                  </div>
-                  <span className={styles.btnPauseLabel}>
-                    {bookingsPaused ? "Resume Bookings" : "Pause New Bookings"}
-                  </span>
+                <button className={styles.btnPause}>
+                  <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className={styles.btnPauseLabel}>Pause New Bookings</span>
                 </button>
               </div>
 
-              {/* View Transactions */}
               <button className={styles.btnTransactions}>
-                <div className={styles.btnTransactionsLeft}>
-                  <div className={styles.btnTransactionsIconWrap}>
-                    <svg fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="1.8">
-                      <circle cx="8" cy="8" r="6" />
-                      <path d="M8 5v3l2 2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <span className={styles.btnTransactionsLabel}>View Recent Transactions</span>
-                </div>
-                <svg className={styles.arrowIcon} fill="none" viewBox="0 0 16 16" stroke="currentColor" strokeWidth="2">
-                  <path d="M4 8h8M9 5l3 3-3 3" strokeLinecap="round" strokeLinejoin="round" />
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#1d4ed8">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                View Recent Transactions
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </button>
             </div>
           </div>
 
           {/* ── Bottom row ──────────────────────────────────────────── */}
-          <div className={`${styles.bottomGrid} ${styles.animateIn}`}>
-
-            {/* Queue table */}
+          <div className={styles.bottomGrid}>
             <div className={styles.queueCard}>
               <div className={styles.cardHeader}>
-                <div>
-                  <span className={styles.cardTitle}>Upcoming Queue</span>
-                  <span className={styles.cardSub}>{QUEUE.length} vehicles scheduled</span>
-                </div>
-                <button className={styles.viewAllBtn}>
-                  View All
-                  <svg fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth="2">
-                    <path d="M2 6h8M7 3l3 3-3 3" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className={styles.tableHead}>
-                <span>#</span>
-                <span>Plate</span>
-                <span>Scheduled</span>
-                <span>Status</span>
-                <span />
+                <span className={styles.cardTitle}>Upcoming Queue</span>
+                <button className={styles.viewAllBtn}>View All</button>
               </div>
 
               <div className={styles.tableRows}>
-                {QUEUE.map((item) => (
+                {QUEUE_DATA.map((item) => (
                   <div key={item.id} className={styles.tableRow}>
-                    <span className={styles.rowId}>{item.id}</span>
-                    <span className={styles.rowPlate}>{item.plate}</span>
-                    <span className={styles.rowTime}>{item.time}</span>
-                    <span>
-                      <span className={`${styles.statusBadge} ${STATUS_CLASS[item.status]}`}>
-                        {item.status}
-                      </span>
-                    </span>
+                    <div className={styles.rowId}>{item.id}</div>
+                    <div className={styles.rowInfo}>
+                      <span className={styles.rowPlate}>{item.plate}</span>
+                      <span className={styles.rowTime}>Scheduled: {item.time}</span>
+                    </div>
                     <button className={styles.rowMenuBtn}>
-                      <svg fill="currentColor" viewBox="0 0 12 12">
-                        <circle cx="6" cy="2"  r="1.2" />
-                        <circle cx="6" cy="6"  r="1.2" />
-                        <circle cx="6" cy="10" r="1.2" />
+                      <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                       </svg>
                     </button>
                   </div>
@@ -509,38 +320,41 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Service Velocity */}
             <div className={styles.velocityCard}>
               <span className={styles.cardTitle}>Service Velocity</span>
-              <span className={styles.cardSub} style={{ marginBottom: 20 }}>Live station performance</span>
 
               <div className={styles.metrics}>
-                {METRICS.map((m) => (
-                  <div key={m.label} className={styles.metric}>
-                    <div className={styles.metricHeader}>
-                      <span className={styles.metricLabel}>{m.label}</span>
-                      <span className={`${styles.metricValue} ${m.valueClass}`}>{m.value}</span>
-                    </div>
-                    <div className={styles.metricTrack}>
-                      <div
-                        className={styles.metricFill}
-                        style={{ width: `${m.pct}%`, background: m.color }}
-                      />
-                    </div>
+                <div className={styles.metric}>
+                  <div className={styles.metricHeader}>
+                    <span className={styles.metricLabel}>AVG. SERVING TIME</span>
+                    <span className={`${styles.metricValue} ${styles.metricValueBlue}`}>4.2 MINS</span>
                   </div>
-                ))}
+                  <div className={styles.metricTrack}>
+                    <div className={styles.metricFill} style={{ width: '70%', background: '#3b82f6' }} />
+                  </div>
+                </div>
+
+                <div className={styles.metric}>
+                  <div className={styles.metricHeader}>
+                    <span className={styles.metricLabel}>STATION CAPACITY</span>
+                    <span className={`${styles.metricValue} ${styles.metricValueGreen}`}>88%</span>
+                  </div>
+                  <div className={styles.metricTrack}>
+                    <div className={styles.metricFill} style={{ width: '88%', background: '#10b981' }} />
+                  </div>
+                </div>
               </div>
 
               <div className={styles.advisory}>
-                <div className={styles.advisoryIcon}>i</div>
+                <svg className={styles.advisoryIcon} width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
                 <p className={styles.advisoryText}>
                   High volume detected. Suggest opening Pump 4 to maintain average serving time below 5 minutes.
                 </p>
               </div>
             </div>
           </div>
-
-          <div className={styles.footerSpacer} />
         </div>
       </div>
     </div>
