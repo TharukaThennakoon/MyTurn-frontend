@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./AdminSidebar.module.css";
 
@@ -70,6 +71,22 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ activeNav }: AdminSidebarProps) {
   const router = useRouter();
+  const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsStatusMenuOpen(false);
+      }
+    }
+    if (isStatusMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isStatusMenuOpen]);
 
   const NAV_ITEMS = [
     { label: "Overview", icon: OverviewIcon, path: "/admindashboard" },
@@ -105,7 +122,31 @@ export default function AdminSidebar({ activeNav }: AdminSidebarProps) {
       </nav>
 
       <div className={styles.sidebarFooter}>
-        <button className={styles.updateBtn}>Update Status</button>
+        <div className={styles.updateBtnContainer} ref={menuRef}>
+          <button 
+            className={styles.updateBtn}
+            onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
+          >
+            Update Status
+          </button>
+          
+          {isStatusMenuOpen && (
+            <div className={styles.statusMenu}>
+              <button className={styles.statusMenuItem} onClick={() => setIsStatusMenuOpen(false)}>
+                <span className={`${styles.statusDot} ${styles.dotGreen}`}></span>
+                Station Online
+              </button>
+              <button className={styles.statusMenuItem} onClick={() => setIsStatusMenuOpen(false)}>
+                <span className={`${styles.statusDot} ${styles.dotYellow}`}></span>
+                Limited Capacity
+              </button>
+              <button className={styles.statusMenuItem} onClick={() => setIsStatusMenuOpen(false)}>
+                <span className={`${styles.statusDot} ${styles.dotRed}`}></span>
+                Station Offline / Maintenance
+              </button>
+            </div>
+          )}
+        </div>
         <div className={styles.profile}>
           <div
             style={{
