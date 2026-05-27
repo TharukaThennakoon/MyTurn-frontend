@@ -74,7 +74,7 @@ export default function AdminSidebar({ activeNav }: AdminSidebarProps) {
   const NAV_ITEMS = [
     { label: "Overview", icon: OverviewIcon, path: "/admindashboard" },
     { label: "Queue", icon: QueueIcon, path: "/adminqueue" },
-    { label: "Slots", icon: SlotsIcon, path: "#" },
+    { label: "Slots", icon: SlotsIcon, path: "/adminslots" },
     { label: "Fuel", icon: FuelIcon, path: "#" },
     { label: "Analytics", icon: AnalyticsIcon, path: "#" },
     { label: "Settings", icon: SettingsIcon, path: "#" },
