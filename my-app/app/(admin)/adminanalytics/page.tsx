@@ -1,10 +1,15 @@
 "use client";
 
+import { useState } from "react";
+
 import styles from "./page.module.css";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminHeader from "@/components/layout/AdminHeader";
 
 export default function AdminAnalytics() {
+  const [showModal, setShowModal] = useState(false);
+  const [timeRange, setTimeRange] = useState("WEEK");
+
   return (
     <div className={styles.container}>
       <AdminSidebar activeNav="Analytics" />
@@ -67,7 +72,9 @@ export default function AdminAnalytics() {
                   <div className={styles.confidenceValue}>92.4%</div>
                 </div>
               </div>
-              <button className={styles.btnWhite}>View Full Forecast</button>
+              <button className={styles.btnWhite} onClick={() => setShowModal(true)}>
+                View Full Forecast
+              </button>
             </div>
           </div>
 
@@ -118,23 +125,51 @@ export default function AdminAnalytics() {
                   <p className={styles.cardSubtitle}>Weekly throughput volume overview</p>
                 </div>
                 <div className={styles.toggleGroup}>
-                  <button className={`${styles.toggleBtn} ${styles.toggleActive}`}>WEEK</button>
-                  <button className={styles.toggleBtn}>MONTH</button>
+                  <button 
+                    className={`${styles.toggleBtn} ${timeRange === "WEEK" ? styles.toggleActive : ""}`}
+                    onClick={() => setTimeRange("WEEK")}
+                  >
+                    WEEK
+                  </button>
+                  <button 
+                    className={`${styles.toggleBtn} ${timeRange === "MONTH" ? styles.toggleActive : ""}`}
+                    onClick={() => setTimeRange("MONTH")}
+                  >
+                    MONTH
+                  </button>
                 </div>
               </div>
               <div className={styles.lineChartContainer}>
-                {/* Fake line chart SVG */}
-                <svg viewBox="0 0 500 150" className={styles.lineChartSvg} preserveAspectRatio="none">
-                  <path d="M0,120 C50,110 100,60 150,60 C200,60 250,110 300,110 C350,110 400,20 450,20 C480,20 500,60 500,60" fill="none" stroke="#3b82f6" strokeWidth="3" />
-                  <circle cx="150" cy="60" r="4" fill="#3b82f6" />
-                  <circle cx="450" cy="20" r="4" fill="#3b82f6" stroke="#ffffff" strokeWidth="2" />
-                </svg>
-                <div className={styles.chartTooltip} style={{ left: '85%', top: '0%' }}>
-                  1,402 Veh
-                </div>
+                {timeRange === "WEEK" ? (
+                  <>
+                    <svg viewBox="0 0 500 150" className={styles.lineChartSvg} preserveAspectRatio="none">
+                      <path d="M0,120 C50,110 100,60 150,60 C200,60 250,110 300,110 C350,110 400,20 450,20 C480,20 500,60 500,60" fill="none" stroke="#3b82f6" strokeWidth="3" />
+                      <circle cx="150" cy="60" r="4" fill="#3b82f6" />
+                      <circle cx="450" cy="20" r="4" fill="#3b82f6" stroke="#ffffff" strokeWidth="2" />
+                    </svg>
+                    <div className={styles.chartTooltip} style={{ left: '85%', top: '0%' }}>
+                      1,402 Veh
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 500 150" className={styles.lineChartSvg} preserveAspectRatio="none">
+                      <path d="M0,80 C80,40 160,130 240,60 C320,10 400,100 500,30" fill="none" stroke="#3b82f6" strokeWidth="3" />
+                      <circle cx="240" cy="60" r="4" fill="#3b82f6" />
+                      <circle cx="500" cy="30" r="4" fill="#3b82f6" stroke="#ffffff" strokeWidth="2" />
+                    </svg>
+                    <div className={styles.chartTooltip} style={{ left: '95%', top: '10%' }}>
+                      6,850 Veh
+                    </div>
+                  </>
+                )}
               </div>
               <div className={styles.chartXAxis}>
-                <span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
+                {timeRange === "WEEK" ? (
+                  <><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span></>
+                ) : (
+                  <><span>WEEK 1</span><span>WEEK 2</span><span>WEEK 3</span><span>WEEK 4</span></>
+                )}
               </div>
             </div>
           </div>
@@ -190,6 +225,47 @@ export default function AdminAnalytics() {
 
         </div>
       </main>
+
+      {showModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>7-Day Demand Forecast</h2>
+              <button className={styles.modalCloseBtn} onClick={() => setShowModal(false)}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <div className={styles.forecastMetrics}>
+                <div className={styles.fMetric}>
+                  <div className={styles.fLabel}>EXPECTED PEAK</div>
+                  <div className={styles.fValue}>Tomorrow, 08:00 AM</div>
+                </div>
+                <div className={styles.fMetric}>
+                  <div className={styles.fLabel}>VOLUME INCREASE</div>
+                  <div className={styles.fValueGreen}>+24%</div>
+                </div>
+              </div>
+              <div className={styles.forecastChart}>
+                <div className={styles.fChartTitle}>Weekly Projection</div>
+                <svg viewBox="0 0 400 100" className={styles.fChartSvg} preserveAspectRatio="none">
+                  <path d="M0,80 C50,60 100,90 150,40 C200,10 250,50 300,20 C350,10 400,60 400,60" fill="none" stroke="#3b82f6" strokeWidth="3" />
+                  <path d="M0,80 C50,60 100,90 150,40 C200,10 250,50 300,20 C350,10 400,60 400,60 L400,100 L0,100 Z" fill="rgba(59, 130, 246, 0.1)" stroke="none" />
+                </svg>
+              </div>
+              <div className={styles.forecastAction}>
+                <div className={styles.fActionText}>
+                  <strong>Recommendation:</strong> Staff 2 extra attendants and open all fuel lanes during the peak window to minimize waiting times.
+                </div>
+                <button className={styles.btnApply}>Apply Staffing Preset</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
