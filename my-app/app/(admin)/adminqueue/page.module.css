@@ -630,3 +630,19 @@
   width: 82.5%;
   border-radius: 3px;
 }
+
+@media (max-width: 1024px) {
+  .topCards { grid-template-columns: repeat(2, 1fr); }
+  .bottomCards { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .container { flex-direction: column; }
+  .topCards { grid-template-columns: 1fr; }
+  .content { padding: 16px; }
+  .header { padding: 16px; flex-direction: column; height: auto; gap: 16px; align-items: flex-start; }
+  .searchBox { width: 100%; }
+  .tableHeader { flex-direction: column; gap: 16px; align-items: flex-start; }
+  .tableSection { overflow-x: auto; }
+  .table { white-space: nowrap; }
+}

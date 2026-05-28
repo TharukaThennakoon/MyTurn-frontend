@@ -692,3 +692,21 @@
   color: #475569;
   line-height: 1.5;
 }
+
+@media (max-width: 1024px) {
+  .kpiGrid { grid-template-columns: repeat(2, 1fr); }
+  .midGrid, .bottomGrid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .root { flex-direction: column; }
+  .kpiGrid { grid-template-columns: 1fr; }
+  .body { padding: 16px; }
+  .topbar { 
+    padding: 16px; 
+    flex-direction: column; 
+    height: auto; 
+    gap: 16px; 
+    align-items: flex-start; 
+  }
+}

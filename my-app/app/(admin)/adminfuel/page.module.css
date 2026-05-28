@@ -1,7 +1,8 @@
 /* Container & Main Layout */
 .container {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background-color: #f8fafc;
   color: #0f172a;
   font-family: 'Inter', sans-serif;
@@ -11,12 +12,11 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 .content {
-  padding: 40px;
-  max-width: 1200px;
-  width: 100%;
+  padding: 32px;
 }
 
 .topSection {
@@ -387,4 +387,12 @@
   .cardsGrid {
     grid-template-columns: 1fr;
   }
+}
+
+@media (max-width: 768px) {
+  .container { flex-direction: column; }
+  .content { padding: 16px; }
+  .mapSection { grid-template-columns: 1fr; }
+  .coordsRow { flex-direction: column; }
+  .formRow { grid-template-columns: 1fr; }
 }
