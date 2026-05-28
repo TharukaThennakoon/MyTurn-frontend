@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./AdminSidebar.module.css";
 
@@ -70,12 +71,14 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ activeNav }: AdminSidebarProps) {
   const router = useRouter();
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState("Online");
 
   const NAV_ITEMS = [
     { label: "Overview", icon: OverviewIcon, path: "/admindashboard" },
     { label: "Queue", icon: QueueIcon, path: "/adminqueue" },
     { label: "Slots", icon: SlotsIcon, path: "/adminslots" },
-    { label: "Fuel", icon: FuelIcon, path: "#" },
+    { label: "Fuel", icon: FuelIcon, path: "/adminfuel" },
     { label: "Analytics", icon: AnalyticsIcon, path: "#" },
     { label: "Settings", icon: SettingsIcon, path: "#" },
   ];
@@ -105,7 +108,39 @@ export default function AdminSidebar({ activeNav }: AdminSidebarProps) {
       </nav>
 
       <div className={styles.sidebarFooter}>
-        <button className={styles.updateBtn}>Update Status</button>
+        <div className={styles.statusWrapper}>
+          <button 
+            className={styles.updateBtn}
+            onClick={() => setShowStatusMenu(!showStatusMenu)}
+          >
+            Update Status
+          </button>
+          
+          {showStatusMenu && (
+            <div className={styles.statusMenu}>
+              <div className={styles.statusMenuHeader}>Set Station Status</div>
+              <button 
+                className={`${styles.statusMenuItem} ${currentStatus === "Online" ? styles.activeStatus : ""}`}
+                onClick={() => { setCurrentStatus("Online"); setShowStatusMenu(false); }}
+              >
+                <span className={styles.dotGreen}></span> Online
+              </button>
+              <button 
+                className={`${styles.statusMenuItem} ${currentStatus === "Maintenance" ? styles.activeStatus : ""}`}
+                onClick={() => { setCurrentStatus("Maintenance"); setShowStatusMenu(false); }}
+              >
+                <span className={styles.dotYellow}></span> Maintenance
+              </button>
+              <button 
+                className={`${styles.statusMenuItem} ${currentStatus === "Offline" ? styles.activeStatus : ""}`}
+                onClick={() => { setCurrentStatus("Offline"); setShowStatusMenu(false); }}
+              >
+                <span className={styles.dotRed}></span> Offline
+              </button>
+            </div>
+          )}
+        </div>
+
         <div className={styles.profile}>
           <div
             style={{
@@ -126,7 +161,14 @@ export default function AdminSidebar({ activeNav }: AdminSidebarProps) {
           </div>
           <div className={styles.profileInfo}>
             <span className={styles.profileName}>Station Manager</span>
-            <span className={styles.profileStatus}>ONLINE</span>
+            <span 
+              className={styles.profileStatus}
+              style={{
+                color: currentStatus === "Online" ? "#16a34a" : currentStatus === "Maintenance" ? "#f59e0b" : "#ef4444"
+              }}
+            >
+              {currentStatus.toUpperCase()}
+            </span>
           </div>
         </div>
       </div>
