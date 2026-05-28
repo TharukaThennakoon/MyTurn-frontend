@@ -79,7 +79,7 @@ export default function AdminSidebar({ activeNav }: AdminSidebarProps) {
     { label: "Queue", icon: QueueIcon, path: "/adminqueue" },
     { label: "Slots", icon: SlotsIcon, path: "/adminslots" },
     { label: "Fuel", icon: FuelIcon, path: "/adminfuel" },
-    { label: "Analytics", icon: AnalyticsIcon, path: "#" },
+    { label: "Analytics", icon: AnalyticsIcon, path: "/adminanalytics" },
     { label: "Settings", icon: SettingsIcon, path: "#" },
   ];
 
