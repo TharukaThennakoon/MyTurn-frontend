@@ -79,30 +79,34 @@ export default function StationsPage() {
       <DashboardTopbar />
 
       <main style={styles.main}>
-        {/* Map view */}
+        {/* Map view — station-hero.jpg background */}
         <div style={styles.mapContainer}>
           <div style={styles.mapPlaceholder}>
-            <svg width="100%" height="100%" style={{ minWidth: "100%", minHeight: "100%" }}>
-              <defs>
-                <linearGradient id="mapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" style={{ stopColor: "#2d5a6d", stopOpacity: 1 }} />
-                  <stop offset="100%" style={{ stopColor: "#1a3a47", stopOpacity: 1 }} />
-                </linearGradient>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#mapGrad)" />
-              {/* Grid pattern */}
-              <g stroke="#ffffff" strokeWidth="0.5" opacity="0.1">
-                <line x1="0" y1="0" x2="100%" y2="0" />
-                <line x1="0" y1="25%" x2="100%" y2="25%" />
-                <line x1="0" y1="50%" x2="100%" y2="50%" />
-                <line x1="0" y1="75%" x2="100%" y2="75%" />
-                <line x1="0" y1="100%" x2="100%" y2="100%" />
-              </g>
-              {/* Location pins */}
-              <circle cx="20%" cy="25%" r="8" fill="#f87171" />
-              <circle cx="50%" cy="40%" r="8" fill="#fbbf24" />
-              <circle cx="75%" cy="30%" r="8" fill="#f87171" />
-            </svg>
+            {/* Hero photo */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
+                backgroundImage: "url('/images/station-hero.jpg')",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            />
+            {/* Dark overlay so badges stay readable */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
+                background:
+                  "linear-gradient(to bottom, rgba(10,20,40,0.45) 0%, rgba(10,20,40,0.25) 60%, rgba(10,20,40,0.55) 100%)",
+              }}
+            />
 
             {/* Status badge */}
             <div style={styles.mapBadge}>
@@ -110,12 +114,17 @@ export default function StationsPage() {
               <span style={styles.badgeText}>{selectedStation.status}</span>
             </div>
 
+            {/* Station name overlay */}
+            <div style={styles.mapStationLabel}>
+              <p style={styles.mapStationName}>{selectedStation.name}</p>
+              <p style={styles.mapStationAddr}>📍 {selectedStation.address}</p>
+            </div>
+
             {/* Zoom button */}
-            <button style={styles.zoomBtn} aria-label="Zoom map">
-              ◎
-            </button>
+            <button style={styles.zoomBtn} aria-label="Zoom map">◎</button>
           </div>
         </div>
+
 
         {/* Station info */}
         <div style={styles.infoSection}>
@@ -286,7 +295,28 @@ const styles: Record<string, React.CSSProperties> = {
     width: "100%",
     height: "100%",
     position: "relative",
-    background: "linear-gradient(135deg, #2d5a6d 0%, #1a3a47 100%)",
+    overflow: "hidden",
+    background: "#1a3a47",
+  },
+  mapStationLabel: {
+    position: "absolute",
+    bottom: 52,
+    left: 16,
+    right: 16,
+    zIndex: 2,
+  },
+  mapStationName: {
+    margin: "0 0 2px",
+    fontSize: 16,
+    fontWeight: 800,
+    color: "#fff",
+    textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+  },
+  mapStationAddr: {
+    margin: 0,
+    fontSize: 12,
+    color: "rgba(255,255,255,0.8)",
+    textShadow: "0 1px 3px rgba(0,0,0,0.5)",
   },
   mapBadge: {
     position: "absolute",

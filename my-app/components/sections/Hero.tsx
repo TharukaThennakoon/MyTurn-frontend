@@ -17,7 +17,10 @@ export default function Hero() {
       <div
         style={{
           position: "absolute",
-          inset: 0,
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
           backgroundImage: "url('/images/station-hero.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -28,7 +31,10 @@ export default function Hero() {
       <div
         style={{
           position: "absolute",
-          inset: 0,
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
           background:
             "linear-gradient(to bottom, rgba(10,20,50,0.55) 0%, rgba(10,20,50,0.3) 50%, rgba(10,20,50,0.65) 100%)",
         }}
