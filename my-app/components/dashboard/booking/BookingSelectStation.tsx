@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 
 export interface StationOption {
   id: string;
@@ -18,6 +19,9 @@ interface BookingSelectStationProps {
   viewMode: "list" | "map";
   onViewModeChange: (mode: "list" | "map") => void;
 }
+
+// Dynamically import to avoid SSR issues with Leaflet (needs window/document)
+const StationMap = dynamic(() => import("./StationMap"), { ssr: false });
 
 export default function BookingSelectStation({
   stations,
@@ -42,7 +46,7 @@ export default function BookingSelectStation({
             }}
             onClick={() => onViewModeChange("list")}
           >
-            List
+            ☰ List
           </button>
           <button
             type="button"
@@ -52,7 +56,7 @@ export default function BookingSelectStation({
             }}
             onClick={() => onViewModeChange("map")}
           >
-            Map
+            🗺 Map
           </button>
         </div>
       </div>
@@ -107,10 +111,11 @@ export default function BookingSelectStation({
           })}
         </div>
       ) : (
-        <div style={styles.mapPlaceholder}>
-          <span style={styles.mapIcon}>🗺</span>
-          <p style={styles.mapText}>Map view — station pins coming soon</p>
-        </div>
+        <StationMap
+          stations={stations}
+          selectedId={selectedId}
+          onSelect={onSelect}
+        />
       )}
     </section>
   );
