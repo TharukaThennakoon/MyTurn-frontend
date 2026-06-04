@@ -13,19 +13,8 @@ export default function Hero() {
         background: "#1a2744",
       }}
     >
-      {/* Background image — place your photo at /public/images/station-hero.jpg */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          left: 0,
-          backgroundImage: "url('/images/station-hero.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
+
+
 
       {/* Dark gradient overlay */}
       <div
