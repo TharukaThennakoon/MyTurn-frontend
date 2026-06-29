@@ -1,4 +1,5 @@
 import LeftBanner from "@/components/auth/LeftBanner";
+import styles from "./layout.module.css";
 
 export default function AuthLayout({
   children,
@@ -6,16 +7,21 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br to-white p-6">
-      <div className="flex w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden h-[580px]">
-        {/* LEFT SIDE */}
-        <div className="hidden md:flex w-1/2">
+    <div className={styles.page}>
+      <div className={styles.card}>
+        {/* LEFT */}
+        <div className={styles.left}>
           <LeftBanner />
         </div>
 
-        {/* RIGHT SIDE */}
-        <div className="w-full md:w-1/2 flex items-center justify-center bg-white p-8">
-          {children}
+        {/* RIGHT */}
+        <div className={styles.right}>
+          <div className={styles.rightInner}>
+            {children}
+          </div>
+          <p className={styles.powered}>
+            Powered by FuelPass Velocity Framework
+          </p>
         </div>
       </div>
     </div>
