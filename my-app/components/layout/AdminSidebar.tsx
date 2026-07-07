@@ -80,7 +80,7 @@ export default function AdminSidebar({ activeNav }: AdminSidebarProps) {
     { label: "Slots", icon: SlotsIcon, path: "/adminslots" },
     { label: "Fuel", icon: FuelIcon, path: "/adminfuel" },
     { label: "Analytics", icon: AnalyticsIcon, path: "/adminanalytics" },
-    { label: "Settings", icon: SettingsIcon, path: "#" },
+    { label: "Settings", icon: SettingsIcon, path: "/adminsettings" },
   ];
 
   return (
