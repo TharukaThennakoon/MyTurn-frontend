@@ -19,20 +19,20 @@ export default function Navbar() {
     <nav
       style={{
         position: "fixed",
-        top: 12,
+        top: scrolled ? 16 : 12,
         left: 0,
         right: 0,
-        width: "calc(100% - 32px)",
+        width: scrolled ? "min(680px, calc(100% - 32px))" : "calc(100% - 32px)",
         maxWidth: 1200,
         margin: "0 auto",
         zIndex: 50,
         height: 64,
-        background: "rgba(255, 255, 255, 0.72)",
+        background: scrolled ? "rgba(255, 255, 255, 0.82)" : "rgba(255, 255, 255, 0.72)",
         backdropFilter: "blur(14px) saturate(180%)",
         border: "1px solid rgba(226, 232, 240, 0.8)",
-        borderRadius: 16,
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.01)",
-        transition: "all 0.3s ease",
+        borderRadius: scrolled ? 999 : 16,
+        boxShadow: scrolled ? "0 10px 30px rgba(0, 0, 0, 0.08)" : "0 4px 20px rgba(0, 0, 0, 0.03)",
+        transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
       }}
     >
       <div

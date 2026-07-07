@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./layout.module.css";
 
 export default function PublicLayout({
@@ -11,12 +11,30 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 40);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div className={styles.wrapper}>
       {/* ── HEADER ── */}
-      <header className={styles.header}>
+      <header
+        className={styles.header}
+        style={{
+          width: scrolled ? "min(680px, calc(100% - 32px))" : "calc(100% - 32px)",
+          borderRadius: scrolled ? "999px" : "16px",
+          top: scrolled ? "16px" : "12px",
+          background: scrolled ? "rgba(255, 255, 255, 0.82)" : "rgba(255, 255, 255, 0.72)",
+          boxShadow: scrolled ? "0 10px 30px rgba(0, 0, 0, 0.08)" : "0 4px 20px rgba(0, 0, 0, 0.03)",
+        }}
+      >
         <div className={styles.headerInner}>
           {/* Logo */}
           <Link href="/" className={styles.logo} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
