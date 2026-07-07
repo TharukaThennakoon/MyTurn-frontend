@@ -19,16 +19,20 @@ export default function Navbar() {
     <nav
       style={{
         position: "fixed",
-        top: 0,
+        top: scrolled ? 16 : 12,
         left: 0,
         right: 0,
+        width: scrolled ? "min(680px, calc(100% - 32px))" : "calc(100% - 32px)",
+        maxWidth: 1200,
+        margin: "0 auto",
         zIndex: 50,
         height: 64,
-        background: scrolled ? "rgba(255,255,255,0.97)" : "rgba(255,255,255,0.92)",
-        backdropFilter: "blur(10px)",
-        borderBottom: scrolled ? "1px solid #f1f5f9" : "none",
-        boxShadow: scrolled ? "0 1px 12px rgba(0,0,0,0.06)" : "none",
-        transition: "all 0.3s ease",
+        background: scrolled ? "rgba(255, 255, 255, 0.82)" : "rgba(255, 255, 255, 0.72)",
+        backdropFilter: "blur(14px) saturate(180%)",
+        border: "1px solid rgba(226, 232, 240, 0.8)",
+        borderRadius: scrolled ? 999 : 16,
+        boxShadow: scrolled ? "0 10px 30px rgba(0, 0, 0, 0.08)" : "0 4px 20px rgba(0, 0, 0, 0.03)",
+        transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)",
       }}
     >
       <div
@@ -43,7 +47,8 @@ export default function Navbar() {
         }}
       >
         {/* Logo */}
-        <Link href="/" style={{ textDecoration: "none", display: "flex" }}>
+        <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "8px" }}>
+          <img src="/images/logo.svg" alt="MyTurn Logo" style={{ height: "32px", width: "auto" }} />
           <span style={{ fontWeight: 800, fontSize: 20, color: "#1a56db", letterSpacing: "-0.5px" }}>My</span>
           <span style={{ fontWeight: 800, fontSize: 20, color: "#0f172a", letterSpacing: "-0.5px" }}>Turn</span>
         </Link>

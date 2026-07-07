@@ -1,13 +1,61 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import DashboardBottomNav from "@/components/dashboard/DashboardBottomNav";
 
 export default function UserProfile() {
+  // Profile state details
+  const [profile, setProfile] = useState({
+    name: "Adrian Thorne",
+    phone: "+1 (555) 012-3456",
+    email: "adrian.thorne@myturn.com",
+    address: "742 Evergreen Terrace, Springfield",
+  });
+
+  // Vehicles state details
+  const [vehicles, setVehicles] = useState([
+    { tag: "VLT-7729", type: "Electric SUV", model: "Tesla Model Y", img: "/images/car.png" }
+  ]);
+
+  // Modal display states
+  const [showEditInfo, setShowEditInfo] = useState(false);
+  const [showAddVehicle, setShowAddVehicle] = useState(false);
+  const [showPaymentSettings, setShowPaymentSettings] = useState(false);
+  const [showSecuritySettings, setShowSecuritySettings] = useState(false);
+
+  // Temporary draft states for forms
+  const [tempInfo, setTempInfo] = useState({ ...profile });
+  const [tempVehicle, setTempVehicle] = useState({ tag: "", type: "Electric SUV", model: "" });
+
+  const handleEditInfoClick = () => {
+    setTempInfo({ ...profile });
+    setShowEditInfo(true);
+  };
+
+  const handleSaveInfoSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfile({ ...tempInfo });
+    setShowEditInfo(false);
+  };
+
+  const handleAddVehicleClick = () => {
+    setTempVehicle({ tag: "", type: "Electric SUV", model: "" });
+    setShowAddVehicle(true);
+  };
+
+  const handleAddVehicleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setVehicles([
+      ...vehicles,
+      { tag: tempVehicle.tag, type: tempVehicle.type, model: tempVehicle.model, img: "/images/car.png" }
+    ]);
+    setShowAddVehicle(false);
+  };
+
   return (
     <div style={styles.shell}>
-      <DashboardTopbar />
+      <DashboardTopbar userName={profile.name.split(" ")[0]} />
 
       <main style={styles.main}>
         {/* Hero */}
@@ -16,7 +64,7 @@ export default function UserProfile() {
             <div style={styles.avatarIllustration}>
               <img
                 src="/images/profile-avatar.png"
-                alt="Adrian Thorne"
+                alt={profile.name}
                 style={styles.avatarImage}
               />
             </div>
@@ -29,7 +77,7 @@ export default function UserProfile() {
             </button>
           </div>
           <div style={styles.heroInfo}>
-            <h1 style={styles.heroName}>Adrian Thorne</h1>
+            <h1 style={styles.heroName}>{profile.name}</h1>
             <p style={styles.heroSub}>Elite Member since Jan 2023</p>
             <div style={styles.badges}>
               <span style={styles.badgeVerified}>✓ VERIFIED DRIVER</span>
@@ -43,22 +91,22 @@ export default function UserProfile() {
           <section style={styles.card}>
             <div style={styles.cardHeaderRow}>
               <h2 style={styles.cardTitle}>Personal Details</h2>
-              <button type="button" style={styles.linkBtn}>
+              <button type="button" style={styles.linkBtn} onClick={handleEditInfoClick}>
                 Edit Info
               </button>
             </div>
             <div style={styles.detailGrid}>
-              <DetailField label="FULL NAME" value="Adrian Thorne" />
-              <DetailField label="PHONE NUMBER" value="+1 (555) 012-3456" />
+              <DetailField label="FULL NAME" value={profile.name} />
+              <DetailField label="PHONE NUMBER" value={profile.phone} />
             </div>
             <DetailField
               label="EMAIL ADDRESS"
-              value="adrian.thorne@myturn.com"
+              value={profile.email}
               full
             />
             <DetailField
               label="PRIMARY RESIDENCE"
-              value="742 Evergreen Terrace, Springfield"
+              value={profile.address}
               full
               last
             />
@@ -86,29 +134,33 @@ export default function UserProfile() {
           </section>
         </div>
 
-        {/* Vehicle registration */}
+        {/* Vehicle registration list */}
         <section style={styles.vehicleCard}>
           <div style={styles.cardHeaderRow}>
             <h2 style={styles.cardTitle}>Vehicle Registration</h2>
-            <button type="button" style={styles.addVehicleBtn}>
+            <button type="button" style={styles.addVehicleBtn} onClick={handleAddVehicleClick}>
               + Add New Vehicle
             </button>
           </div>
-          <div style={styles.vehicleRow}>
-            <div style={styles.vehicleImageWrap}>
-              <div style={styles.vehicleImagePlaceholder}>
-                <img
-                  src="/images/car.png"
-                  alt="Tesla Model Y"
-                  style={styles.vehicleImage}
-                />
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {vehicles.map((veh, i) => (
+              <div key={i} style={styles.vehicleRow}>
+                <div style={styles.vehicleImageWrap}>
+                  <div style={styles.vehicleImagePlaceholder}>
+                    <img
+                      src={veh.img}
+                      alt={veh.model}
+                      style={styles.vehicleImage}
+                    />
+                  </div>
+                </div>
+                <div style={styles.vehicleMeta}>
+                  <VehicleTag icon="🔢" label={veh.tag} />
+                  <VehicleTag icon="⚡" label={veh.type} />
+                  <VehicleTag icon="🚙" label={veh.model} />
+                </div>
               </div>
-            </div>
-            <div style={styles.vehicleMeta}>
-              <VehicleTag icon="🔢" label="VLT-7729" />
-              <VehicleTag icon="⚡" label="Electric SUV" />
-              <VehicleTag icon="🚙" label="Tesla Model Y" />
-            </div>
+            ))}
           </div>
           <span style={styles.vehicleWatermark} aria-hidden>
             🚗
@@ -123,17 +175,184 @@ export default function UserProfile() {
             iconBg="#eff6ff"
             title="Payment Methods"
             sub="Visa ending in .... 4492"
+            onClick={() => setShowPaymentSettings(true)}
           />
           <SettingsCard
             icon="🛡"
             iconBg="#fff7ed"
             title="Security & Privacy"
             sub="Two-factor authentication active"
+            onClick={() => setShowSecuritySettings(true)}
           />
         </div>
       </main>
 
       <DashboardBottomNav active="profile" />
+
+      {/* ── Edit Info Modal Overlay ── */}
+      {showEditInfo && (
+        <div style={modalOverlayStyle} onClick={() => setShowEditInfo(false)}>
+          <div style={modalCardStyle} onClick={e => e.stopPropagation()}>
+            <div style={modalHeaderStyle}>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: 0 }}>Edit Personal Details</h3>
+              <button style={modalCloseBtnStyle} onClick={() => setShowEditInfo(false)}>✕</button>
+            </div>
+            <form onSubmit={handleSaveInfoSubmit} style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+              <div>
+                <label style={labelStyle}>Full Name</label>
+                <input
+                  type="text"
+                  style={inputStyle}
+                  value={tempInfo.name}
+                  onChange={e => setTempInfo({ ...tempInfo, name: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Phone Number</label>
+                <input
+                  type="text"
+                  style={inputStyle}
+                  value={tempInfo.phone}
+                  onChange={e => setTempInfo({ ...tempInfo, phone: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Email Address</label>
+                <input
+                  type="email"
+                  style={inputStyle}
+                  value={tempInfo.email}
+                  onChange={e => setTempInfo({ ...tempInfo, email: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Primary Residence</label>
+                <input
+                  type="text"
+                  style={inputStyle}
+                  value={tempInfo.address}
+                  onChange={e => setTempInfo({ ...tempInfo, address: e.target.value })}
+                  required
+                />
+              </div>
+              <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+                <button type="button" style={secondaryBtnStyle} onClick={() => setShowEditInfo(false)}>Cancel</button>
+                <button type="submit" style={primaryBtnStyle}>Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Add Vehicle Modal Overlay ── */}
+      {showAddVehicle && (
+        <div style={modalOverlayStyle} onClick={() => setShowAddVehicle(false)}>
+          <div style={modalCardStyle} onClick={e => e.stopPropagation()}>
+            <div style={modalHeaderStyle}>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: 0 }}>Register New Vehicle</h3>
+              <button style={modalCloseBtnStyle} onClick={() => setShowAddVehicle(false)}>✕</button>
+            </div>
+            <form onSubmit={handleAddVehicleSubmit} style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+              <div>
+                <label style={labelStyle}>License Plate Tag</label>
+                <input
+                  type="text"
+                  placeholder="e.g. VLT-8849"
+                  style={inputStyle}
+                  value={tempVehicle.tag}
+                  onChange={e => setTempVehicle({ ...tempVehicle, tag: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Vehicle Type / Power source</label>
+                <select
+                  style={inputStyle}
+                  value={tempVehicle.type}
+                  onChange={e => setTempVehicle({ ...tempVehicle, type: e.target.value })}
+                  required
+                >
+                  <option value="Electric SUV">Electric SUV</option>
+                  <option value="Petrol Sedan">Petrol Sedan</option>
+                  <option value="Diesel Pickup">Diesel Pickup</option>
+                  <option value="Hybrid Hatchback">Hybrid Hatchback</option>
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Vehicle Model</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Tesla Model 3"
+                  style={inputStyle}
+                  value={tempVehicle.model}
+                  onChange={e => setTempVehicle({ ...tempVehicle, model: e.target.value })}
+                  required
+                />
+              </div>
+              <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+                <button type="button" style={secondaryBtnStyle} onClick={() => setShowAddVehicle(false)}>Cancel</button>
+                <button type="submit" style={primaryBtnStyle}>Add Vehicle</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Payment Settings Modal Overlay ── */}
+      {showPaymentSettings && (
+        <div style={modalOverlayStyle} onClick={() => setShowPaymentSettings(false)}>
+          <div style={modalCardStyle} onClick={e => e.stopPropagation()}>
+            <div style={modalHeaderStyle}>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: 0 }}>Payment Methods</h3>
+              <button style={modalCloseBtnStyle} onClick={() => setShowPaymentSettings(false)}>✕</button>
+            </div>
+            <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10 }}>
+                <span style={{ fontSize: 24 }}>💳</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontWeight: 700, fontSize: 13, color: "#0f172a", margin: 0 }}>Visa ending in 4492</p>
+                  <p style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>Expires 12/28 · Primary</p>
+                </div>
+                <button style={{ background: "none", border: "none", color: "#ef4444", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Delete</button>
+              </div>
+              <button style={{ ...primaryBtnStyle, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <span>+</span> Add Credit Card
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Security Settings Modal Overlay ── */}
+      {showSecuritySettings && (
+        <div style={modalOverlayStyle} onClick={() => setShowSecuritySettings(false)}>
+          <div style={modalCardStyle} onClick={e => e.stopPropagation()}>
+            <div style={modalHeaderStyle}>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: "#fff", margin: 0 }}>Security & Privacy</h3>
+              <button style={modalCloseBtnStyle} onClick={() => setShowSecuritySettings(false)}>✕</button>
+            </div>
+            <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
+                <div>
+                  <p style={{ fontWeight: 700, fontSize: 13, color: "#0f172a", margin: 0 }}>Two-Factor Auth</p>
+                  <p style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>Secure account with TOTP tokens</p>
+                </div>
+                <input type="checkbox" defaultChecked style={{ width: 18, height: 18 }} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0" }}>
+                <div>
+                  <p style={{ fontWeight: 700, fontSize: 13, color: "#0f172a", margin: 0 }}>Biometric Sign In</p>
+                  <p style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>Use FaceID or Fingerprint scan</p>
+                </div>
+                <input type="checkbox" style={{ width: 18, height: 18 }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -177,14 +396,16 @@ function SettingsCard({
   iconBg,
   title,
   sub,
+  onClick,
 }: {
   icon: string;
   iconBg: string;
   title: string;
   sub: string;
+  onClick?: () => void;
 }) {
   return (
-    <button type="button" style={styles.settingsCard}>
+    <button type="button" style={styles.settingsCard} onClick={onClick}>
       <span style={{ ...styles.settingsIcon, background: iconBg }}>{icon}</span>
       <div style={styles.settingsText}>
         <p style={styles.settingsTitle}>{title}</p>
@@ -195,6 +416,101 @@ function SettingsCard({
   );
 }
 
+// ─── Shared Popover Styles ───────────────────────────────────────────────────
+const modalOverlayStyle: React.CSSProperties = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(15, 23, 42, 0.65)",
+  backdropFilter: "blur(4px)",
+  zIndex: 9000,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 16,
+};
+
+const modalCardStyle: React.CSSProperties = {
+  background: "#fff",
+  borderRadius: 18,
+  width: "100%",
+  maxWidth: 400,
+  boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+  overflow: "hidden",
+};
+
+const modalHeaderStyle: React.CSSProperties = {
+  background: "linear-gradient(135deg, #1d4ed8, #2563eb)",
+  padding: "16px 20px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+};
+
+const modalCloseBtnStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.15)",
+  border: "1.5px solid rgba(255,255,255,0.3)",
+  color: "#fff",
+  borderRadius: 6,
+  width: 30,
+  height: 30,
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: 12,
+  fontFamily: "inherit",
+};
+
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: 10,
+  fontWeight: 700,
+  color: "#64748b",
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
+  marginBottom: 6,
+};
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "10px 12px",
+  background: "#f8fafc",
+  border: "1.5px solid #e2e8f0",
+  borderRadius: 8,
+  fontSize: 14,
+  fontWeight: 600,
+  color: "#0f172a",
+  fontFamily: "inherit",
+  outline: "none",
+};
+
+const primaryBtnStyle: React.CSSProperties = {
+  flex: 1,
+  background: "linear-gradient(135deg, #1d4ed8, #2563eb)",
+  color: "#fff",
+  border: "none",
+  borderRadius: 10,
+  padding: "12px",
+  fontSize: 13.5,
+  fontWeight: 700,
+  cursor: "pointer",
+  fontFamily: "inherit",
+  boxShadow: "0 4px 12px rgba(37,99,235,0.25)",
+};
+
+const secondaryBtnStyle: React.CSSProperties = {
+  background: "#f1f5f9",
+  color: "#475569",
+  border: "1.5px solid #e2e8f0",
+  borderRadius: 10,
+  padding: "12px 18px",
+  fontSize: 13.5,
+  fontWeight: 600,
+  cursor: "pointer",
+  fontFamily: "inherit",
+};
+
+// ─── Styles ──────────────────────────────────────────────────────────────────
 const styles: Record<string, React.CSSProperties> = {
   shell: {
     minHeight: "100vh",
@@ -207,7 +523,7 @@ const styles: Record<string, React.CSSProperties> = {
   main: {
     flex: 1,
     overflowY: "auto",
-    padding: "20px 20px 12px",
+    padding: "20px 20px 120px",
     maxWidth: 1100,
     margin: "0 auto",
     width: "100%",
@@ -236,7 +552,6 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: "center",
     boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
   },
-  avatarFace: { fontSize: 56 },
   avatarImage: {
     width: "100%",
     height: "100%",
@@ -441,6 +756,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 20,
     alignItems: "center",
     flexWrap: "wrap",
+    borderBottom: "1px solid #f1f5f9",
+    paddingBottom: 16,
   },
   vehicleImageWrap: { flexShrink: 0 },
   vehicleImagePlaceholder: {
@@ -452,7 +769,6 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     justifyContent: "center",
   },
-  vehicleEmoji: { fontSize: 40 },
   vehicleImage: {
     width: "100%",
     height: "100%",
