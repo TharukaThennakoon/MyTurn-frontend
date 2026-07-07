@@ -13,22 +13,17 @@ export default function Hero() {
         background: "#1a2744",
       }}
     >
-      {/* Background image — place your photo at /public/images/station-hero.jpg */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage: "url('/images/station-hero.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
+
+
 
       {/* Dark gradient overlay */}
       <div
         style={{
           position: "absolute",
-          inset: 0,
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
           background:
             "linear-gradient(to bottom, rgba(10,20,50,0.55) 0%, rgba(10,20,50,0.3) 50%, rgba(10,20,50,0.65) 100%)",
         }}
@@ -125,7 +120,7 @@ export default function Hero() {
         {/* CTA buttons */}
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <a
-            href="/get-started"
+            href="/choose-role"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -163,7 +158,7 @@ export default function Hero() {
           </a>
 
           <a
-            href="#stations"
+            href="/viewStation"
             style={{
               display: "inline-flex",
               alignItems: "center",

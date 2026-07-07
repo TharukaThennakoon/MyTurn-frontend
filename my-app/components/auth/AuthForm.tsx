@@ -1,5 +1,7 @@
+"use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import VehicleDetails from "./VehicleDetails";
 
 type Props = {
@@ -7,18 +9,37 @@ type Props = {
 };
 
 export default function AuthForm({ type }: Props) {
+  const router = useRouter();
+  const isRegister = type === "register";
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (isRegister) {
+      router.push("/login");
+    } else {
+      router.push("/dashboard");
+    }
+  };
+
+
   return (
-<div className="w-full max-w-xs">
-      <h2 className="text-2xl font-semibold mb-2">
-        {type === "register" ? "Create an Account" : "Login"}
-      </h2>
+    <div className="w-full max-w-xs">
+      {/* Header */}
+      <div className="mb-6">
+        <h2 className="mb-1 text-2xl font-bold text-gray-900">
+          {isRegister ? "Create an Account" : "Welcome back"}
+        </h2>
+        <p className="text-sm text-gray-500">
+          {isRegister
+            ? "Join the elite network of efficient fueling."
+            : "Sign in to manage your queue and bookings."}
+        </p>
+      </div>
 
-      <p className="text-gray-500 mb-6 text-sm">
-        Join the elite network of efficient fueling.
-      </p>
-
-      <form className="space-y-4">
-        {type === "register" && (
+      <form className="space-y-3" onSubmit={handleSubmit}>
+        {/* Full Name — register only */}
+        {isRegister && (
           <div>
             <label htmlFor="full-name" className="sr-only">
               Full Name
@@ -40,7 +61,7 @@ export default function AuthForm({ type }: Props) {
             </label>
             <input
               id="phone-number"
-              type="text"
+              type="tel"
               placeholder="Phone Number"
               className="input"
             />
@@ -58,6 +79,7 @@ export default function AuthForm({ type }: Props) {
           </div>
         </div>
 
+        {/* Password */}
         <div>
           <label htmlFor="password" className="sr-only">
             Password
@@ -70,21 +92,22 @@ export default function AuthForm({ type }: Props) {
           />
         </div>
 
-        {type === "register" && <VehicleDetails />}
+        {/* Vehicle details — register only */}
+        {isRegister && <VehicleDetails />}
 
-        <button className="btn-primary">
-          {type === "register" ? "Create Account →" : "Login →"}
+        {/* Submit */}
+        <button type="submit" className="btn-primary">
+          {isRegister ? "Create Account →" : "Login →"}
         </button>
 
-        <p className="text-sm text-center text-gray-500">
-          {type === "register"
-            ? "Already have an account?"
-            : "Don't have an account?"}
+        {/* Footer link */}
+        <p className="pt-1 text-sm text-center text-gray-500">
+          {isRegister ? "Already have an account?" : "Don't have an account?"}
           <Link
-            href={type === "register" ? "/login" : "/register"}
-            className="text-blue-600 ml-1 hover:underline"
+            href={isRegister ? "/login" : "/register"}
+            className="ml-1 font-medium text-blue-600 hover:underline"
           >
-            {type === "register" ? "Login here" : "Register here"}
+            {isRegister ? "Login here" : "Register here"}
           </Link>
         </p>
       </form>
