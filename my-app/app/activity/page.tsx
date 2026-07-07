@@ -4,10 +4,27 @@ export default function ActivityPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navbar */}
-      <header className="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-6 fixed top-0 left-0 right-0 z-10">
-        <span className="text-blue-700 font-bold text-base tracking-tight">
-          FuelPass Velocity
-        </span>
+      <header
+        className="flex items-center justify-between px-6 fixed z-10"
+        style={{
+          top: 12,
+          left: 16,
+          right: 16,
+          height: 60,
+          background: "rgba(255, 255, 255, 0.72)",
+          backdropFilter: "blur(14px) saturate(180%)",
+          border: "1px solid rgba(226, 232, 240, 0.8)",
+          borderRadius: 16,
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.01)",
+          transition: "all 0.3s ease",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <img src="/images/logo.svg" alt="MyTurn Logo" style={{ height: "30px", width: "auto" }} />
+          <span className="text-blue-700 font-extrabold text-base tracking-tight">
+            My<span className="text-gray-900">Turn</span>
+          </span>
+        </div>
         <div className="flex items-center gap-4">
           <button className="text-gray-400 hover:text-gray-600 transition-colors relative">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
@@ -33,7 +50,7 @@ export default function ActivityPage() {
       </header>
 
       {/* Main */}
-      <main className="pt-14">
+      <main className="pt-24">
         <ActivityHub />
       </main>
     </div>

@@ -47,9 +47,9 @@ const NEARBY_STATIONS = [
 
 const QUICK_INSIGHTS = [
   { icon: "▦", label: "AVAILABILITY", value: "92%" },
-  { icon: "⊙", label: "AVG FLOW",     value: "Fast"  },
-  { icon: "↗", label: "PEAK HOUR",    value: "7:00 PM" },
-  { icon: "▣", label: "REGIONS",      value: "12" },
+  { icon: "⊙", label: "AVG FLOW", value: "Fast" },
+  { icon: "↗", label: "PEAK HOUR", value: "7:00 PM" },
+  { icon: "▣", label: "REGIONS", value: "12" },
 ];
 
 // ─── Component ───────────────────────────────────────────────────────────────

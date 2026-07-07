@@ -19,8 +19,11 @@ export default function PublicLayout({
       <header className={styles.header}>
         <div className={styles.headerInner}>
           {/* Logo */}
-          <Link href="/" className={styles.logo}>
-            <span className={styles.logoMy}>My</span>Turn
+          <Link href="/" className={styles.logo} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <img src="/images/logo.svg" alt="MyTurn Logo" style={{ height: "32px", width: "auto" }} />
+            <span style={{ fontWeight: 800, fontSize: "1.25rem", color: "#0f172a", letterSpacing: "-0.5px" }}>
+              <span className={styles.logoMy}>My</span>Turn
+            </span>
           </Link>
 
           {/* Desktop nav */}
@@ -89,8 +92,11 @@ export default function PublicLayout({
         <div className={styles.footerInner}>
           {/* Left: logo + copyright */}
           <div className={styles.footerLeft}>
-            <Link href="/" className={styles.footerLogo}>
-              <span className={styles.logoMy}>My</span>Turn
+            <Link href="/" className={styles.footerLogo} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <img src="/images/logo.svg" alt="MyTurn Logo" style={{ height: "28px", width: "auto" }} />
+              <span style={{ fontWeight: 800, fontSize: "1.15rem", color: "#0f172a", letterSpacing: "-0.5px" }}>
+                <span className={styles.logoMy}>My</span>Turn
+              </span>
             </Link>
             <p className={styles.footerCopy}>
               © {new Date().getFullYear()} MyTurn Digital Queueing. Part of the

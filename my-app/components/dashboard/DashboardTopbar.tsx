@@ -17,7 +17,11 @@ export default function DashboardTopbar({
     <header style={styles.header}>
       {/* Logo */}
       <div style={styles.logo}>
-        <span style={styles.logoText}>MyTurn</span>
+        <img src="/images/logo.svg" alt="MyTurn Logo" style={{ height: "30px", width: "auto" }} />
+        <span style={styles.logoText}>
+          <span style={{ color: "#2563eb" }}>My</span>
+          <span style={{ color: "#0f172a" }}>Turn</span>
+        </span>
       </div>
 
       {/* Actions */}
@@ -55,12 +59,17 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     justifyContent: "space-between",
     padding: "0 20px",
-    height: 56,
-    background: "#fff",
-    borderBottom: "1px solid #f1f5f9",
+    height: 60,
+    background: "rgba(255, 255, 255, 0.72)",
+    backdropFilter: "blur(14px) saturate(180%)",
+    border: "1px solid rgba(226, 232, 240, 0.8)",
+    borderRadius: 16,
     position: "sticky",
-    top: 0,
+    top: 12,
+    margin: "12px 16px 0",
     zIndex: 100,
+    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.01)",
+    transition: "all 0.3s ease",
   },
   logo: {
     display: "flex",
