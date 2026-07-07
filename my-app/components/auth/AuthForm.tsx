@@ -11,7 +11,7 @@ type Props = {
 export default function AuthForm({ type }: Props) {
   const router = useRouter();
   const isRegister = type === "register";
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -21,7 +21,7 @@ export default function AuthForm({ type }: Props) {
       router.push("/dashboard");
     }
   };
-  
+
 
   return (
     <div className="w-full max-w-xs">
