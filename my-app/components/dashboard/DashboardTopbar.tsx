@@ -72,14 +72,14 @@ export default function DashboardTopbar({
         boxShadow: scrolled ? "0 10px 30px rgba(0, 0, 0, 0.08)" : "0 4px 20px rgba(0, 0, 0, 0.03)",
       }}
     >
-      {/* Logo */}
-      <div style={styles.logo}>
+      {/* Clickable Logo and Words linking to Landing Screen */}
+      <Link href="/" style={{ display: "flex", alignItems: "center", gap: 6, textDecoration: "none", cursor: "pointer" }}>
         <img src="/images/logo.svg" alt="MyTurn Logo" style={{ height: "30px", width: "auto" }} />
         <span style={styles.logoText}>
           <span style={{ color: "#2563eb" }}>My</span>
           <span style={{ color: "#0f172a" }}>Turn</span>
         </span>
-      </div>
+      </Link>
 
       {/* Actions container with relative positioning for dropdown overlays */}
       <div style={actionsContainerStyle}>

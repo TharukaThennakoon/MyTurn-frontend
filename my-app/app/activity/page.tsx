@@ -1,3 +1,4 @@
+import Link from "next/link";
 import ActivityHub from "@/components/activity/ActivityHub";
 
 export default function ActivityPage() {
@@ -19,12 +20,12 @@ export default function ActivityPage() {
           transition: "all 0.3s ease",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", cursor: "pointer" }}>
           <img src="/images/logo.svg" alt="MyTurn Logo" style={{ height: "30px", width: "auto" }} />
           <span className="text-blue-700 font-extrabold text-base tracking-tight">
             My<span className="text-gray-900">Turn</span>
           </span>
-        </div>
+        </Link>
         <div className="flex items-center gap-4">
           <button className="text-gray-400 hover:text-gray-600 transition-colors relative">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
