@@ -326,29 +326,29 @@ export default function SmartPick({
     <>
       <div style={cardStyle}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ color: "#f59e0b", fontSize: 14 }}>✦</span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b", letterSpacing: "0.03em" }}>
+          <span style={{ color: "#f59e0b", fontSize: 15 }}>✦</span>
+          <span style={{ fontSize: 12.5, fontWeight: 800, color: "#f59e0b", letterSpacing: "0.03em" }}>
             Best station for you
           </span>
         </div>
 
-        <h3 style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", lineHeight: 1.1, letterSpacing: "-0.3px" }}>
+        <h3 style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", lineHeight: 1.1, letterSpacing: "-0.3px" }}>
           {stationName}
         </h3>
-        <p style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>{description}</p>
+        <p style={{ fontSize: 13.5, color: "#64748b", lineHeight: 1.5 }}>{description}</p>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 12, color: "#64748b", width: 72, flexShrink: 0 }}>{waitTimeLabel}</span>
-          <div style={{ flex: 1, height: 4, background: "#e2e8f0", borderRadius: 99, overflow: "hidden" }}>
+          <span style={{ fontSize: 13.5, color: "#64748b", width: 85, flexShrink: 0 }}>{waitTimeLabel}</span>
+          <div style={{ flex: 1, height: 5, background: "#e2e8f0", borderRadius: 99, overflow: "hidden" }}>
             <div style={{ width: "25%", height: "100%", background: "linear-gradient(90deg, #2563eb, #60a5fa)", borderRadius: 99 }} />
           </div>
-          <span style={{ fontSize: 12, fontWeight: 700, color: "#2563eb", whiteSpace: "nowrap" }}>{waitTimeValue}</span>
+          <span style={{ fontSize: 13.5, fontWeight: 700, color: "#2563eb", whiteSpace: "nowrap" }}>{waitTimeValue}</span>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 12, color: "#64748b", width: 72, flexShrink: 0 }}>Distance</span>
+          <span style={{ fontSize: 13.5, color: "#64748b", width: 85, flexShrink: 0 }}>Distance</span>
           <span style={{ flex: 1 }} />
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{distance}</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>{distance}</span>
         </div>
 
         <button
@@ -381,12 +381,11 @@ const cardStyle: React.CSSProperties = {
   background: "#fff",
   border: "1.5px solid #e2e8f0",
   borderRadius: 14,
-  padding: "20px 20px 18px",
+  padding: "24px",
   display: "flex",
   flexDirection: "column",
-  gap: 12,
-  minWidth: 220,
-  maxWidth: 240,
+  gap: 14,
+  width: "100%",
   boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
 };
 
@@ -396,8 +395,8 @@ const bookBtn: React.CSSProperties = {
   color: "#fff",
   border: "none",
   borderRadius: 10,
-  padding: "11px 0",
-  fontSize: 14,
+  padding: "13px 0",
+  fontSize: 15,
   fontWeight: 700,
   cursor: "pointer",
   boxShadow: "0 4px 14px rgba(37,99,235,0.3)",

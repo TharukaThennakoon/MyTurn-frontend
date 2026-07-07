@@ -101,8 +101,8 @@ export default function DashboardTopbar({
           </span>
         </button>
 
-        {/* Profile Greeting */}
-        <span style={{ fontSize: 13, fontWeight: 700, color: "#475569", marginRight: 4, marginLeft: 4 }}>
+        {/* Profile Greeting Rounded Responsive Box */}
+        <span style={greetingBoxStyle}>
           Hii {userName}
         </span>
 
@@ -115,12 +115,12 @@ export default function DashboardTopbar({
         {showHistory && (
           <>
             <div style={backdropStyle} onClick={() => setShowHistory(false)} />
-            <div style={{ ...dropdownStyle, width: 340 }}>
+            <div style={dropdownStyle}>
               <div style={dropdownHeaderStyle}>
-                <span style={{ fontSize: 15 }}>⏱️</span>
-                <span style={{ fontWeight: 800, color: "#0f172a", fontSize: 13.5 }}>Queue History</span>
+                <span style={{ fontSize: 16 }}>⏱️</span>
+                <span style={{ fontWeight: 800, color: "#0f172a", fontSize: 14.5 }}>Queue History</span>
               </div>
-              <div style={{ padding: "10px", display: "flex", flexDirection: "column", gap: 8, maxHeight: 260, overflowY: "auto" }}>
+              <div style={{ padding: "12px", display: "flex", flexDirection: "column", gap: 8, maxHeight: 270, overflowY: "auto" }}>
                 {[
                   { station: "Central Hub Station", date: "June 28, 2026", fuel: "Petrol", token: "#102", status: "COMPLETED" },
                   { station: "West Side Plaza", date: "June 15, 2026", fuel: "Diesel", token: "#84", status: "COMPLETED" },
@@ -128,12 +128,12 @@ export default function DashboardTopbar({
                 ].map((item, i) => (
                   <div key={i} style={historyItemStyle}>
                     <div>
-                      <p style={{ fontWeight: 700, fontSize: 13, color: "#0f172a", margin: 0 }}>{item.station}</p>
-                      <p style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>{item.date} · {item.fuel}</p>
+                      <p style={{ fontWeight: 700, fontSize: 14.5, color: "#0f172a", margin: 0 }}>{item.station}</p>
+                      <p style={{ fontSize: 11.5, color: "#64748b", marginTop: 2 }}>{item.date} · {item.fuel}</p>
                     </div>
                     <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: "#1e40af", background: "#eff6ff", padding: "2px 6px", borderRadius: 4 }}>Token {item.token}</span>
-                      <span style={{ display: "block", fontSize: 9, fontWeight: 800, color: "#16a34a", marginTop: 4 }}>{item.status}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#1e40af", background: "#eff6ff", padding: "2px 6px", borderRadius: 4 }}>Token {item.token}</span>
+                      <span style={{ display: "block", fontSize: 9.5, fontWeight: 800, color: "#16a34a", marginTop: 4 }}>{item.status}</span>
                     </div>
                   </div>
                 ))}
@@ -146,23 +146,23 @@ export default function DashboardTopbar({
         {showNotifications && (
           <>
             <div style={backdropStyle} onClick={() => setShowNotifications(false)} />
-            <div style={{ ...dropdownStyle, width: 340 }}>
+            <div style={dropdownStyle}>
               <div style={dropdownHeaderStyle}>
-                <span style={{ fontSize: 15 }}>🔔</span>
-                <span style={{ fontWeight: 800, color: "#0f172a", fontSize: 13.5 }}>Notifications</span>
+                <span style={{ fontSize: 16 }}>🔔</span>
+                <span style={{ fontWeight: 800, color: "#0f172a", fontSize: 14.5 }}>Notifications</span>
               </div>
-              <div style={{ padding: "10px", display: "flex", flexDirection: "column", gap: 8, maxHeight: 260, overflowY: "auto" }}>
+              <div style={{ padding: "12px", display: "flex", flexDirection: "column", gap: 8, maxHeight: 270, overflowY: "auto" }}>
                 {[
                   { title: "⛽ Booking Confirmed", desc: "Your booking at Central Hub Station is confirmed.", time: "10m ago", active: true },
                   { title: "🚗 Turn Approaching", desc: "You are next in queue. Please arrive at the station gate.", time: "1h ago", active: true },
                   { title: "📱 Profile Verified", desc: "Your driver license was verified successfully.", time: "1d ago", active: false }
                 ].map((item, i) => (
-                  <div key={i} style={{ ...historyItemStyle, borderLeft: item.active ? "3px solid #2563eb" : "1px solid #e2e8f0", paddingLeft: item.active ? 10 : 12 }}>
+                  <div key={i} style={{ ...historyItemStyle, borderLeft: item.active ? "4px solid #2563eb" : "1px solid #e2e8f0", paddingLeft: item.active ? 10 : 12 }}>
                     <div>
-                      <p style={{ fontWeight: 700, fontSize: 12.5, color: "#0f172a", margin: 0 }}>{item.title}</p>
-                      <p style={{ fontSize: 11, color: "#64748b", marginTop: 2, lineHeight: 1.4 }}>{item.desc}</p>
+                      <p style={{ fontWeight: 700, fontSize: 13.5, color: "#0f172a", margin: 0 }}>{item.title}</p>
+                      <p style={{ fontSize: 12, color: "#64748b", marginTop: 2, lineHeight: 1.4 }}>{item.desc}</p>
                     </div>
-                    <span style={{ fontSize: 9.5, color: "#94a3b8", whiteSpace: "nowrap", flexShrink: 0 }}>{item.time}</span>
+                    <span style={{ fontSize: 10, color: "#94a3b8", whiteSpace: "nowrap", flexShrink: 0 }}>{item.time}</span>
                   </div>
                 ))}
               </div>
@@ -174,34 +174,34 @@ export default function DashboardTopbar({
         {showProfile && (
           <>
             <div style={backdropStyle} onClick={() => setShowProfile(false)} />
-            <div style={{ ...dropdownStyle, width: 320 }}>
+            <div style={dropdownStyle}>
               <div style={dropdownHeaderStyle}>
-                <span style={{ fontSize: 15 }}>👤</span>
-                <span style={{ fontWeight: 800, color: "#0f172a", fontSize: 13.5 }}>Driver Profile</span>
+                <span style={{ fontSize: 16 }}>👤</span>
+                <span style={{ fontWeight: 800, color: "#0f172a", fontSize: 14.5 }}>Driver Profile</span>
               </div>
-              <div style={{ padding: "14px 12px", display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ padding: "16px 14px", display: "flex", flexDirection: "column", gap: 14 }}>
                 {/* Profile card preview */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg, #2563eb, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg, #2563eb, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>
                     👤
                   </div>
                   <div>
-                    <h4 style={{ fontSize: 14, fontWeight: 800, color: "#0f172a", margin: 0 }}>Adrian Thorne</h4>
-                    <span style={{ fontSize: 9, fontWeight: 700, background: "#dcfce7", color: "#15803d", padding: "1px 5px", borderRadius: 4, marginTop: 2, display: "inline-block" }}>✓ VERIFIED</span>
+                    <h4 style={{ fontSize: 15.5, fontWeight: 800, color: "#0f172a", margin: 0 }}>Adrian Thorne</h4>
+                    <span style={{ fontSize: 9.5, fontWeight: 700, background: "#dcfce7", color: "#15803d", padding: "1px 6px", borderRadius: 4, marginTop: 2, display: "inline-block" }}>✓ VERIFIED</span>
                   </div>
                 </div>
 
                 {/* Minimal Details */}
-                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
+                <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
                     <span style={{ color: "#64748b" }}>Email:</span>
                     <span style={{ fontWeight: 600, color: "#0f172a" }}>adrian@myturn.com</span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
                     <span style={{ color: "#64748b" }}>Phone:</span>
                     <span style={{ fontWeight: 600, color: "#0f172a" }}>+1 (555) 012-3456</span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
                     <span style={{ color: "#64748b" }}>Vehicle Tag:</span>
                     <span style={{ fontWeight: 600, color: "#0f172a" }}>VLT-7729 (Tesla Model Y)</span>
                   </div>
@@ -213,12 +213,12 @@ export default function DashboardTopbar({
                   style={{
                     display: "block",
                     width: "100%",
-                    padding: "9px",
+                    padding: "10px",
                     background: "#fee2e2",
                     border: "1px solid #fecaca",
                     color: "#991b1b",
                     fontWeight: 700,
-                    fontSize: 12.5,
+                    fontSize: 13,
                     borderRadius: 8,
                     textDecoration: "none",
                     textAlign: "center",
@@ -323,6 +323,20 @@ const actionsContainerStyle: React.CSSProperties = {
   position: "relative",
 };
 
+const greetingBoxStyle: React.CSSProperties = {
+  fontSize: 14.5,
+  fontWeight: 700,
+  color: "#2563eb",
+  background: "rgba(37, 99, 235, 0.08)",
+  padding: "6px 14px",
+  borderRadius: "99px",
+  marginRight: 6,
+  marginLeft: 6,
+  display: "inline-flex",
+  alignItems: "center",
+  whiteSpace: "nowrap",
+};
+
 const backdropStyle: React.CSSProperties = {
   position: "fixed",
   inset: 0,
@@ -334,6 +348,7 @@ const dropdownStyle: React.CSSProperties = {
   position: "absolute",
   top: "calc(100% + 12px)",
   right: 0,
+  width: "min(360px, calc(100vw - 32px))",
   background: "#fff",
   borderRadius: "16px",
   border: "1px solid rgba(226, 232, 240, 0.9)",
