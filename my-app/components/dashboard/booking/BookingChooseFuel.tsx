@@ -64,14 +64,14 @@ export default function BookingChooseFuel({
 const styles: Record<string, React.CSSProperties> = {
   section: { marginBottom: 32 },
   stepTag: {
-    fontSize: 10,
-    fontWeight: 700,
+    fontSize: 12,
+    fontWeight: 800,
     letterSpacing: "0.12em",
     color: "#2563eb",
     marginBottom: 4,
   },
   title: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: 800,
     color: "#0f172a",
     margin: "0 0 16px",
@@ -106,14 +106,14 @@ const styles: Record<string, React.CSSProperties> = {
   },
   cardInfo: { flex: 1 },
   cardName: {
-    fontSize: 14,
+    fontSize: 16.5,
     fontWeight: 700,
     color: "#0f172a",
     margin: "0 0 4px",
   },
-  cardDesc: { fontSize: 11, color: "#64748b", margin: 0 },
+  cardDesc: { fontSize: 13, color: "#64748b", margin: 0 },
   price: {
-    fontSize: 20,
+    fontSize: 23,
     fontWeight: 800,
     color: "#0f172a",
     margin: 0,

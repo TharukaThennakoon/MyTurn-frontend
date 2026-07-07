@@ -85,14 +85,14 @@ export default function BookingPickSlot({
 const styles: Record<string, React.CSSProperties> = {
   section: { marginBottom: 24 },
   stepTag: {
-    fontSize: 10,
-    fontWeight: 700,
+    fontSize: 12,
+    fontWeight: 800,
     letterSpacing: "0.12em",
     color: "#2563eb",
     marginBottom: 4,
   },
   title: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: 800,
     color: "#0f172a",
     margin: "0 0 16px",
@@ -112,7 +112,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderStyle: "solid",
     borderColor: "#e2e8f0",
     borderRadius: 12,
-    padding: "14px 12px",
+    padding: "16px 14px",
     cursor: "pointer",
     textAlign: "left",
     transition: "all 0.2s",
@@ -124,13 +124,13 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#fff",
   },
   period: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: 700,
     letterSpacing: "0.1em",
     opacity: 0.85,
   },
   time: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 800,
     marginBottom: 4,
   },
@@ -148,8 +148,8 @@ const styles: Record<string, React.CSSProperties> = {
     transition: "width 0.2s",
   },
   capacity: {
-    fontSize: 10,
-    fontWeight: 600,
+    fontSize: 12,
+    fontWeight: 700,
     opacity: 0.9,
   },
   infoBanner: {
@@ -165,12 +165,12 @@ const styles: Record<string, React.CSSProperties> = {
     borderColor: "#bfdbfe",
   },
   infoIcon: {
-    width: 20,
-    height: 20,
+    width: 22,
+    height: 22,
     borderRadius: "50%",
     background: "#2563eb",
     color: "#fff",
-    fontSize: 12,
+    fontSize: 13.5,
     fontWeight: 700,
     display: "flex",
     alignItems: "center",
@@ -178,7 +178,7 @@ const styles: Record<string, React.CSSProperties> = {
     flexShrink: 0,
   },
   infoText: {
-    fontSize: 12,
+    fontSize: 13.5,
     color: "#1e40af",
     margin: 0,
     lineHeight: 1.5,

@@ -355,18 +355,18 @@ export default function NearbyStations({ stations }: NearbyStationsProps) {
                 }}
               >
                 <div style={{ ...iconBox, background: s.iconBg }}>
-                  <span style={{ fontSize: 18 }}>{s.icon}</span>
+                  <span style={{ fontSize: 20 }}>{s.icon}</span>
                 </div>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>{s.name}</p>
+                  <p style={{ fontSize: 16.5, fontWeight: 700, color: "#0f172a", margin: 0 }}>{s.name}</p>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 11, color: "#64748b" }}>↗ {s.distance}</span>
+                    <span style={{ fontSize: 12.5, color: "#64748b" }}>↗ {s.distance}</span>
                     <span style={{ ...badgeStyle, background: sc.bg, color: sc.text }}>{s.status}</span>
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>Wait: {s.waitMin} min</p>
-                  <p style={{ fontSize: 10, color: "#94a3b8", marginTop: 2, fontWeight: 600, letterSpacing: "0.04em" }}>
+                  <p style={{ fontSize: 15, fontWeight: 800, color: "#0f172a", margin: 0 }}>Wait: {s.waitMin} min</p>
+                  <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 2, fontWeight: 700, letterSpacing: "0.04em", margin: 0 }}>
                     {s.queueSize} QUEUE · {s.queueLabel}
                   </p>
                 </div>
@@ -396,10 +396,10 @@ const headerStyle: React.CSSProperties = {
 };
 
 const labelStyle: React.CSSProperties = {
-  fontSize: 10,
-  fontWeight: 700,
-  letterSpacing: "0.12em",
-  color: "#64748b",
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: "0.14em",
+  color: "#475569",
 };
 
 const viewMapBtn: React.CSSProperties = {
@@ -407,13 +407,13 @@ const viewMapBtn: React.CSSProperties = {
   border: "1.5px solid #bfdbfe",
   borderRadius: 8,
   color: "#2563eb",
-  fontSize: 12,
+  fontSize: 13.5,
   fontWeight: 700,
   cursor: "pointer",
   display: "flex",
   alignItems: "center",
   gap: 5,
-  padding: "5px 12px",
+  padding: "6px 14px",
   transition: "all 0.18s",
   fontFamily: "inherit",
 };
@@ -422,7 +422,7 @@ const rowStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   gap: 14,
-  padding: "12px 14px",
+  padding: "14px 16px",
   borderRadius: 10,
   background: "#f8fafc",
   border: "1px solid #f1f5f9",
@@ -431,8 +431,8 @@ const rowStyle: React.CSSProperties = {
 };
 
 const iconBox: React.CSSProperties = {
-  width: 40,
-  height: 40,
+  width: 44,
+  height: 44,
   borderRadius: 10,
   display: "flex",
   alignItems: "center",
@@ -441,7 +441,7 @@ const iconBox: React.CSSProperties = {
 };
 
 const badgeStyle: React.CSSProperties = {
-  fontSize: 9,
+  fontSize: 11,
   fontWeight: 800,
   letterSpacing: "0.08em",
   padding: "2px 7px",

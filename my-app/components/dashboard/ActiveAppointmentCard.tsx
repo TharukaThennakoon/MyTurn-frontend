@@ -270,17 +270,17 @@ const wrapperStyle: React.CSSProperties = {
 };
 
 const sectionLabel: React.CSSProperties = {
-  fontSize: 10,
-  fontWeight: 700,
-  letterSpacing: "0.12em",
-  color: "#64748b",
-  marginBottom: 10,
+  fontSize: 12,
+  fontWeight: 800,
+  letterSpacing: "0.14em",
+  color: "#475569",
+  marginBottom: 12,
 };
 
 const cardStyle: React.CSSProperties = {
   background: "linear-gradient(130deg, #1d4ed8 0%, #2563eb 60%, #1e40af 100%)",
-  borderRadius: 12,
-  padding: "22px 24px",
+  borderRadius: 14,
+  padding: "24px 26px",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
@@ -316,17 +316,17 @@ const tokenRow: React.CSSProperties = {
 const tokenBadge: React.CSSProperties = {
   background: "rgba(255,255,255,0.18)",
   color: "#e0f2fe",
-  fontSize: 10,
+  fontSize: 12,
   fontWeight: 700,
   letterSpacing: "0.08em",
-  padding: "3px 9px",
+  padding: "4px 10px",
   borderRadius: 5,
   border: "1px solid rgba(255,255,255,0.22)",
 };
 
 const activeDot: React.CSSProperties = {
-  width: 8,
-  height: 8,
+  width: 9,
+  height: 9,
   borderRadius: "50%",
   background: "#4ade80",
   boxShadow: "0 0 0 2px rgba(74,222,128,0.3)",
@@ -335,13 +335,13 @@ const activeDot: React.CSSProperties = {
 
 const activeLabel: React.CSSProperties = {
   color: "#86efac",
-  fontSize: 12,
-  fontWeight: 600,
+  fontSize: 14,
+  fontWeight: 700,
 };
 
 const stationNameStyle: React.CSSProperties = {
-  fontSize: 28,
-  fontWeight: 800,
+  fontSize: 30,
+  fontWeight: 900,
   color: "#fff",
   lineHeight: 1.1,
   letterSpacing: "-0.5px",
@@ -349,7 +349,7 @@ const stationNameStyle: React.CSSProperties = {
 
 const timeRangeStyle: React.CSSProperties = {
   color: "#bfdbfe",
-  fontSize: 13,
+  fontSize: 14.5,
   display: "flex",
   alignItems: "center",
   gap: 6,
@@ -367,9 +367,9 @@ const btnOutline: React.CSSProperties = {
   border: "1.5px solid rgba(255,255,255,0.35)",
   color: "#fff",
   borderRadius: 8,
-  padding: "9px 18px",
-  fontSize: 13,
-  fontWeight: 600,
+  padding: "10px 20px",
+  fontSize: 14.5,
+  fontWeight: 700,
   cursor: "pointer",
   display: "flex",
   alignItems: "center",
@@ -383,23 +383,23 @@ const arrivalBox: React.CSSProperties = {
   background: "rgba(255,255,255,0.18)",
   border: "1.5px solid rgba(255,255,255,0.28)",
   borderRadius: 12,
-  padding: "16px 26px",
+  padding: "18px 28px",
   textAlign: "center",
   backdropFilter: "blur(8px)",
-  minWidth: 130,
+  minWidth: 140,
   flexShrink: 0,
 };
 
 const arrivalLabel: React.CSSProperties = {
-  fontSize: 10,
-  fontWeight: 700,
+  fontSize: 11.5,
+  fontWeight: 800,
   letterSpacing: "0.12em",
   color: "#bfdbfe",
   marginBottom: 4,
 };
 
 const arrivalTime: React.CSSProperties = {
-  fontSize: 32,
+  fontSize: 34,
   fontWeight: 900,
   color: "#fff",
   lineHeight: 1.1,

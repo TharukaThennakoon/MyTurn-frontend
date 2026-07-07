@@ -145,9 +145,9 @@ const styles: Record<string, React.CSSProperties> = {
     background: "#fff",
   },
   sectionLabel: {
-    fontSize: 10,
-    fontWeight: 700,
-    letterSpacing: "0.12em",
-    color: "#64748b",
+    fontSize: 12,
+    fontWeight: 800,
+    letterSpacing: "0.14em",
+    color: "#475569",
   },
 };
