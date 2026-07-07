@@ -138,9 +138,17 @@
   transition: transform 0.25s, opacity 0.25s;
 }
 
-.barOpen1 { transform: translateY(7px) rotate(45deg); }
-.barOpen2 { opacity: 0; }
-.barOpen3 { transform: translateY(-7px) rotate(-45deg); }
+.barOpen1 {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.barOpen2 {
+  opacity: 0;
+}
+
+.barOpen3 {
+  transform: translateY(-7px) rotate(-45deg);
+}
 
 /* ── MOBILE MENU ─────────────────────── */
 .mobileMenu {
@@ -161,9 +169,13 @@
   transition: color 0.15s;
 }
 
-.mobileLink:last-child { border-bottom: none; }
+.mobileLink:last-child {
+  border-bottom: none;
+}
 
-.mobileLink:hover { color: #2563eb; }
+.mobileLink:hover {
+  color: #2563eb;
+}
 
 .mobileDivider {
   border: none;
@@ -232,7 +244,9 @@
   transition: color 0.15s;
 }
 
-.footerLink:hover { color: #2563eb; }
+.footerLink:hover {
+  color: #2563eb;
+}
 
 .footerIcons {
   display: flex;
@@ -263,6 +277,7 @@
 
 /* ── RESPONSIVE ───────────────────────── */
 @media (max-width: 768px) {
+
   .nav,
   .actions {
     display: none;
