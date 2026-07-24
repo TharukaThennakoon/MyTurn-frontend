@@ -12,7 +12,7 @@ interface DashboardTopbarProps {
 }
 
 export default function DashboardTopbar({
-  userName = "Adrian",
+  userName,
   onHistory,
   onNotifications,
   onProfile,
@@ -21,6 +21,28 @@ export default function DashboardTopbar({
   const [showHistory, setShowHistory] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+
+  const [userData, setUserData] = useState({
+    name: "Driver",
+    email: "",
+    phone: "",
+    vehicleNumber: "",
+  });
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setUserData({
+          name: parsed.name || parsed.fullName || "Driver",
+          email: parsed.email || "",
+          phone: parsed.phone || "Not specified",
+          vehicleNumber: parsed.vehicleNumber || "Not registered",
+        });
+      }
+    } catch (e) {}
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -103,7 +125,7 @@ export default function DashboardTopbar({
 
         {/* Profile Greeting Rounded Responsive Box */}
         <span style={greetingBoxStyle}>
-          Hii {userName}
+          Hii {userData.name.split(" ")[0] || "Driver"}
         </span>
 
         {/* Avatar */}
@@ -186,7 +208,7 @@ export default function DashboardTopbar({
                     👤
                   </div>
                   <div>
-                    <h4 style={{ fontSize: 15.5, fontWeight: 800, color: "#0f172a", margin: 0 }}>Adrian Thorne</h4>
+                    <h4 style={{ fontSize: 15.5, fontWeight: 800, color: "#0f172a", margin: 0 }}>{userData.name || "Driver"}</h4>
                     <span style={{ fontSize: 9.5, fontWeight: 700, background: "#dcfce7", color: "#15803d", padding: "1px 6px", borderRadius: 4, marginTop: 2, display: "inline-block" }}>✓ VERIFIED</span>
                   </div>
                 </div>
@@ -195,15 +217,15 @@ export default function DashboardTopbar({
                 <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
                     <span style={{ color: "#64748b" }}>Email:</span>
-                    <span style={{ fontWeight: 600, color: "#0f172a" }}>adrian@myturn.com</span>
+                    <span style={{ fontWeight: 600, color: "#0f172a" }}>{userData.email || "—"}</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
                     <span style={{ color: "#64748b" }}>Phone:</span>
-                    <span style={{ fontWeight: 600, color: "#0f172a" }}>+1 (555) 012-3456</span>
+                    <span style={{ fontWeight: 600, color: "#0f172a" }}>{userData.phone || "Not specified"}</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
                     <span style={{ color: "#64748b" }}>Vehicle Tag:</span>
-                    <span style={{ fontWeight: 600, color: "#0f172a" }}>VLT-7729 (Tesla Model Y)</span>
+                    <span style={{ fontWeight: 600, color: "#0f172a" }}>{userData.vehicleNumber || "Not registered"}</span>
                   </div>
                 </div>
 

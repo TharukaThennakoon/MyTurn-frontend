@@ -1,22 +1,48 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import DashboardBottomNav from "@/components/dashboard/DashboardBottomNav";
 
 export default function UserProfile() {
-  // Profile state details
+  // Profile state details — loaded from localStorage after login
   const [profile, setProfile] = useState({
-    name: "Adrian Thorne",
-    phone: "+1 (555) 012-3456",
-    email: "adrian.thorne@myturn.com",
-    address: "742 Evergreen Terrace, Springfield",
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
   });
 
   // Vehicles state details
-  const [vehicles, setVehicles] = useState([
-    { tag: "VLT-7729", type: "Electric SUV", model: "Tesla Model Y", img: "/images/car.png" }
-  ]);
+  const [vehicles, setVehicles] = useState<
+    { tag: string; type: string; model: string; img: string }[]
+  >([]);
+
+  // Load real user data from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setProfile({
+          name: parsed.name || parsed.fullName || "Driver",
+          phone: parsed.phone || "",
+          email: parsed.email || "",
+          address: "",
+        });
+        if (parsed.vehicleNumber) {
+          setVehicles([
+            {
+              tag: parsed.vehicleNumber,
+              type: "Registered Vehicle",
+              model: "Primary Vehicle",
+              img: "/images/car.png",
+            },
+          ]);
+        }
+      }
+    } catch (e) {}
+  }, []);
 
   // Modal display states
   const [showEditInfo, setShowEditInfo] = useState(false);
@@ -35,6 +61,12 @@ export default function UserProfile() {
 
   const handleSaveInfoSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Also persist updated name back to localStorage
+    try {
+      const stored = localStorage.getItem("user");
+      const existing = stored ? JSON.parse(stored) : {};
+      localStorage.setItem("user", JSON.stringify({ ...existing, ...tempInfo }));
+    } catch (e) {}
     setProfile({ ...tempInfo });
     setShowEditInfo(false);
   };

@@ -1,10 +1,22 @@
 "use client";
 
 
-export default function VehicleDetails() {
+interface VehicleDetailsProps {
+  vehicleNumber?: string;
+  setVehicleNumber?: (val: string) => void;
+  vehicleType?: string;
+  setVehicleType?: (val: string) => void;
+}
+
+export default function VehicleDetails({
+  vehicleNumber = "",
+  setVehicleNumber,
+  vehicleType = "",
+  setVehicleType,
+}: VehicleDetailsProps) {
   return (
-    <div className="border-t border-gray-100 pt-4 mt-2">
-      <h3 className="text-sm font-medium mb-3 text-gray-500 uppercase tracking-wide">
+    <div className="border-t border-gray-100 pt-3 mt-1">
+      <h3 className="text-xs font-semibold mb-2 text-gray-500 uppercase tracking-wide">
         Vehicle Details
       </h3>
 
@@ -13,14 +25,21 @@ export default function VehicleDetails() {
           type="text"
           placeholder="Vehicle Number"
           className="input"
+          value={vehicleNumber}
+          onChange={(e) => setVehicleNumber && setVehicleNumber(e.target.value)}
         />
 
-        <select className="input">
+        <select
+          className="input"
+          value={vehicleType}
+          onChange={(e) => setVehicleType && setVehicleType(e.target.value)}
+        >
           <option value="">Select Type</option>
-          <option value="car">Car</option>
-          <option value="bike">Bike</option>
-          <option value="truck">Truck</option>
-          <option value="van">Van</option>
+          <option value="CAR">Car</option>
+          <option value="BIKE">Bike</option>
+          <option value="TRUCK">Truck</option>
+          <option value="VAN">Van</option>
+          <option value="THREE_WHEELER">Three Wheeler</option>
         </select>
       </div>
     </div>

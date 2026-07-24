@@ -1,25 +1,58 @@
-import type { Metadata } from "next";
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
+import stationAdminService from "@/services/stationAdminService";
 
-export const metadata: Metadata = {
-  title: "Admin Login | MyTurn",
-  description: "Secure access for station operators and administrators.",
-};
+export default function AdminLoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-type AdminLoginPageProps = {
-  searchParams: Promise<{
-    error?: string;
-    success?: string;
-  }>;
-};
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      setError("Please enter your email and password.");
+      return;
+    }
+    setLoading(true);
+    setError("");
 
-export default async function AdminLoginPage({
-  searchParams,
-}: AdminLoginPageProps) {
-  const params = await searchParams;
-  const showInvalidCredentials = params.error === "invalid_credentials";
-  const showSuccess = params.success === "true";
+    try {
+      const res = await stationAdminService.adminLogin({ email, password });
+      const token = res.data?.accessToken || res.data?.token;
+
+      if (res.success) {
+        if (token) {
+          localStorage.setItem("adminToken", token);
+        }
+        // Save real admin data for dashboard display
+        localStorage.setItem(
+          "adminUser",
+          JSON.stringify({
+            name: res.data?.name || res.data?.fullName || email.split("@")[0],
+            email: res.data?.email || email,
+            phone: res.data?.phone || "",
+            stationId: res.data?.stationId || null,
+            stationName: res.data?.stationName || "",
+            role: res.data?.role || "ROLE_ADMIN",
+          })
+        );
+        router.push("/admindashboard");
+      } else {
+        setError(res.message || "Invalid credentials. Please try again.");
+      }
+    } catch (err: any) {
+      setError(err.message || "Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className={styles.page}>
@@ -43,49 +76,62 @@ export default async function AdminLoginPage({
             Secure access for station operators.
           </p>
 
-          {showInvalidCredentials && (
+          {error && (
             <p className={styles.errorMessage} role="alert" aria-live="polite">
-              Invalid credentials. Please check your email, password, and
-              security code.
+              {error}
             </p>
           )}
 
-          {showSuccess && (
-            <p
-              className={styles.successMessage}
-              role="status"
-              aria-live="polite"
-            >
-              Login successful! Redirecting to dashboard...
-            </p>
-          )}
-
-          <form className={styles.form}>
+          <form className={styles.form} onSubmit={handleLogin}>
             <label htmlFor="admin-email">Work Email</label>
             <input
               id="admin-email"
               type="email"
               placeholder="admin@myturn.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
 
             <label htmlFor="admin-password">Password</label>
-            <input
-              id="admin-password"
-              type="password"
-              placeholder="Enter your password"
-            />
+            <div style={{ position: "relative" }}>
+              <input
+                id="admin-password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ paddingRight: 44 }}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                style={{
+                  position: "absolute", right: 12, top: "50%",
+                  transform: "translateY(-50%)", background: "none",
+                  border: "none", cursor: "pointer", fontSize: 16,
+                  color: "#64748b"
+                }}
+                aria-label="Toggle password visibility"
+              >
+                {showPassword ? "🙈" : "👁️"}
+              </button>
+            </div>
 
-            <label htmlFor="admin-code">Security Code</label>
-            <input id="admin-code" type="text" placeholder="One-time code" />
-
-            <Link href="/admindashboard">
-      <button type="button">
-        Access Dashboard
-      </button>
-    </Link>
-
+            <button
+              type="submit"
+              disabled={loading}
+              style={{ opacity: loading ? 0.7 : 1, cursor: loading ? "not-allowed" : "pointer" }}
+            >
+              {loading ? "Signing in…" : "Access Dashboard"}
+            </button>
           </form>
 
+          <p className={styles.bottomText}>
+            Don&apos;t have an account?{" "}
+            <Link href="/adminregister">Register as Admin</Link>
+          </p>
           <p className={styles.bottomText}>
             Need user access instead?{" "}
             <Link href="/login">Go to user login</Link>
