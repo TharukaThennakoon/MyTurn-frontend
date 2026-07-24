@@ -1,17 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
+import stationAdminService from "@/services/stationAdminService";
 
 const PROVINCES = [
   "Western", "Central", "Southern", "Northern", "Eastern",
   "North Western", "North Central", "Uva", "Sabaragamuwa",
 ];
 
-const ROLES = ["Station Manager", "Fuel Attendant Supervisor", "Operations Officer", "IT Administrator"];
+const SL_DISTRICTS = [
+  "Colombo", "Gampaha", "Kalutara", "Kandy", "Matale", "Nuwara Eliya",
+  "Galle", "Matara", "Hambantota", "Jaffna", "Kilinochchi", "Mannar",
+  "Vavuniya", "Mullaitivu", "Batticaloa", "Ampara", "Trincomalee",
+  "Kurunegala", "Puttalam", "Anuradhapura", "Polonnaruwa", "Badulla",
+  "Monaragala", "Ratnapura", "Kegalle",
+];
 
 type FormData = {
+  // Step 1 — Personal
   fullName: string;
   email: string;
   mobile: string;
@@ -21,10 +30,17 @@ type FormData = {
   city: string;
   province: string;
   postalCode: string;
-  stationRegId: string;
-  stationType: string;
+  // Step 2 — Station
   stationName: string;
-  role: string;
+  stationAddress: string;
+  stationCity: string;
+  stationDistrict: string;
+  stationContact: string;
+  openingTime: string;
+  closingTime: string;
+  latitude: number | null;
+  longitude: number | null;
+  // Step 3 — Security
   password: string;
   confirmPassword: string;
   agreeTerms: boolean;
@@ -33,72 +49,272 @@ type FormData = {
 const initial: FormData = {
   fullName: "", email: "", mobile: "", nic: "",
   addressLine1: "", addressLine2: "", city: "", province: "", postalCode: "",
-  stationRegId: "", stationType: "", stationName: "",
-  role: "", password: "", confirmPassword: "", agreeTerms: false,
+  stationName: "", stationAddress: "", stationCity: "", stationDistrict: "",
+  stationContact: "", openingTime: "06:00", closingTime: "20:00",
+  latitude: null, longitude: null,
+  password: "", confirmPassword: "", agreeTerms: false,
 };
 
+declare global {
+  interface Window {
+    L: any;
+    _mapInitialized?: boolean;
+  }
+}
+
 export default function AdminRegisterPage() {
+  const router = useRouter();
   const [form, setForm] = useState<FormData>(initial);
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const [step, setStep] = useState(1); // 1 = Personal, 2 = Station, 3 = Security
+  const [submittedStationName, setSubmittedStationName] = useState("");
+  const mapRef = useRef<HTMLDivElement>(null);
+  const leafletMapRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
 
-  const set = (field: keyof FormData, value: string | boolean) =>
+  const set = (field: keyof FormData, value: string | boolean | number | null) =>
     setForm((p) => ({ ...p, [field]: value }));
 
+  // ── Leaflet map setup (Step 2) ───────────────────────────────────
+  const initMap = useCallback(() => {
+    if (typeof window === "undefined" || !window.L || !mapRef.current) return;
+    if (leafletMapRef.current) return; // already initialised
+
+    const map = window.L.map(mapRef.current, {
+      center: [7.8731, 80.7718], // Sri Lanka centre
+      zoom: 8,
+      zoomControl: true,
+    });
+
+    window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+      maxZoom: 19,
+    }).addTo(map);
+
+    // Custom marker icon
+    const icon = window.L.icon({
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41],
+    });
+
+    map.on("click", (e: any) => {
+      const { lat, lng } = e.latlng;
+      const roundedLat = Math.round(lat * 1000000) / 1000000;
+      const roundedLng = Math.round(lng * 1000000) / 1000000;
+
+      if (markerRef.current) {
+        markerRef.current.setLatLng([roundedLat, roundedLng]);
+      } else {
+        markerRef.current = window.L.marker([roundedLat, roundedLng], { icon })
+          .addTo(map)
+          .bindPopup(`📍 Station Location<br/>Lat: ${roundedLat}<br/>Lng: ${roundedLng}`)
+          .openPopup();
+      }
+      markerRef.current.setPopupContent(
+        `📍 Station Location<br/>Lat: ${roundedLat}<br/>Lng: ${roundedLng}`
+      );
+      setForm((p) => ({ ...p, latitude: roundedLat, longitude: roundedLng }));
+    });
+
+    leafletMapRef.current = map;
+
+    // If coordinates already set, place marker
+    if (form.latitude && form.longitude) {
+      markerRef.current = window.L.marker([form.latitude, form.longitude], { icon })
+        .addTo(map)
+        .bindPopup(`📍 Station Location`)
+        .openPopup();
+      map.setView([form.latitude, form.longitude], 14);
+    }
+  }, [form.latitude, form.longitude]);
+
+  // Load Leaflet CSS + JS dynamically
+  useEffect(() => {
+    if (step !== 2) return;
+
+    // Leaflet CSS
+    if (!document.getElementById("leaflet-css")) {
+      const link = document.createElement("link");
+      link.id = "leaflet-css";
+      link.rel = "stylesheet";
+      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+      document.head.appendChild(link);
+    }
+
+    // Leaflet JS
+    if (window.L) {
+      setTimeout(initMap, 100);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    script.async = true;
+    script.onload = () => setTimeout(initMap, 100);
+    document.body.appendChild(script);
+
+    return () => {
+      // Cleanup map when leaving step 2
+    };
+  }, [step, initMap]);
+
+  // Re-invalidate map size after mounting (fixes grey tiles)
+  useEffect(() => {
+    if (step === 2 && leafletMapRef.current) {
+      setTimeout(() => {
+        leafletMapRef.current?.invalidateSize();
+      }, 300);
+    }
+  }, [step]);
+
+  const useMyLocation = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const { latitude, longitude } = pos.coords;
+      setForm((p) => ({ ...p, latitude, longitude }));
+      if (leafletMapRef.current) {
+        leafletMapRef.current.setView([latitude, longitude], 16);
+        const icon = window.L?.icon({
+          iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+          iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+          shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+          iconSize: [25, 41], iconAnchor: [12, 41],
+        });
+        if (markerRef.current) {
+          markerRef.current.setLatLng([latitude, longitude]);
+        } else if (window.L) {
+          markerRef.current = window.L.marker([latitude, longitude], { icon })
+            .addTo(leafletMapRef.current)
+            .bindPopup("📍 Your Location").openPopup();
+        }
+      }
+    });
+  };
+
+  // ── Validation ───────────────────────────────────────────────────
   const validate = (currentStep: number): boolean => {
     const e: Partial<Record<keyof FormData, string>> = {};
-
     if (currentStep === 1) {
       if (!form.fullName.trim()) e.fullName = "Full name is required.";
       if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = "Enter a valid email.";
-      if (!form.mobile.match(/^0\d{9}$/)) e.mobile = "Enter a valid Sri Lankan mobile number.";
+      if (!form.mobile.match(/^0\d{9}$/)) e.mobile = "Enter a valid Sri Lankan mobile (e.g. 07XXXXXXXX).";
       if (!form.nic.match(/^(\d{9}[VvXx]|\d{12})$/)) e.nic = "Enter a valid NIC (9+V/X or 12 digits).";
       if (!form.addressLine1.trim()) e.addressLine1 = "Address is required.";
       if (!form.city.trim()) e.city = "City is required.";
       if (!form.province) e.province = "Province is required.";
     }
-
     if (currentStep === 2) {
-      if (!form.stationRegId.trim()) e.stationRegId = "Station Registration ID is required.";
       if (!form.stationName.trim()) e.stationName = "Station name is required.";
-      if (!form.stationType) e.stationType = "Station type is required.";
-      if (!form.role) e.role = "Role is required.";
+      if (!form.stationAddress.trim()) e.stationAddress = "Station address is required.";
+      if (!form.stationCity.trim()) e.stationCity = "Station city is required.";
+      if (!form.stationDistrict) e.stationDistrict = "District is required.";
+      if (!form.stationContact.match(/^0\d{9}$/)) e.stationContact = "Enter a valid contact number.";
+      if (!form.openingTime) e.openingTime = "Opening time is required.";
+      if (!form.closingTime) e.closingTime = "Closing time is required.";
+      if (!form.latitude || !form.longitude) e.latitude = "Please click on the map to set the station location.";
     }
-
     if (currentStep === 3) {
       if (form.password.length < 8) e.password = "Password must be at least 8 characters.";
       if (form.password !== form.confirmPassword) e.confirmPassword = "Passwords do not match.";
       if (!form.agreeTerms) e.agreeTerms = "You must agree to the terms.";
     }
-
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   const next = () => { if (validate(step)) setStep((s) => s + 1); };
   const back = () => setStep((s) => s - 1);
-  const handleSubmit = () => { if (validate(3)) setSubmitted(true); };
 
+  const handleSubmit = async () => {
+    if (!validate(3)) return;
+    setLoading(true);
+    setApiError("");
+
+    try {
+      // Step A: Create the station
+      const stationRes = await stationAdminService.createStation({
+        stationName: form.stationName,
+        address: form.stationAddress,
+        city: form.stationCity,
+        district: form.stationDistrict,
+        contactNumber: form.stationContact,
+        latitude: form.latitude!,
+        longitude: form.longitude!,
+        openingTime: `${form.openingTime}:00`,
+        closingTime: `${form.closingTime}:00`,
+        maxVehiclesPerSlot: 10,
+        avgServiceTimeMinutes: 5,
+        slotDurationMinutes: 10,
+      });
+
+      if (!stationRes.success || !stationRes.data) {
+        throw new Error(stationRes.message || "Failed to create station.");
+      }
+
+      const stationId = stationRes.data.id;
+
+      // Step B: Register the admin
+      const adminRes = await stationAdminService.adminRegister({
+        name: form.fullName,
+        email: form.email,
+        password: form.password,
+        phone: form.mobile,
+        stationId,
+      });
+
+      if (!adminRes.success) {
+        throw new Error(adminRes.message || "Admin registration failed.");
+      }
+
+      setSubmittedStationName(form.stationName);
+      setSubmitted(true);
+    } catch (err: any) {
+      setApiError(err.message || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Success screen ───────────────────────────────────────────────
   if (submitted) {
     return (
       <div className={styles.page}>
         <div className={styles.successWrap}>
           <div className={styles.successBox}>
             <span className={styles.successIcon}>🎉</span>
-            <h2 className={styles.successTitle}>Registration Submitted</h2>
+            <h2 className={styles.successTitle}>Registration Successful!</h2>
             <p className={styles.successText}>
-              Your admin account for <strong>{form.stationName}</strong> has been submitted for review.
-              We&apos;ll verify your Station Registration ID and notify you at <strong>{form.email}</strong>.
+              Your admin account and station <strong>{submittedStationName}</strong> have been created.
+              Please check <strong>{form.email}</strong> for a verification email before logging in.
             </p>
-            <Link href="/choose-role" className={styles.successBtn}>Back to Home</Link>
+            <Link href="/adminlogin?role=admin" className={styles.successBtn}>
+              Go to Admin Login
+            </Link>
           </div>
         </div>
       </div>
     );
   }
+
+  const strengthLevel =
+    form.password.length >= 12 &&
+      /[A-Z]/.test(form.password) &&
+      /\d/.test(form.password) &&
+      /[^A-Za-z0-9]/.test(form.password)
+      ? "strong"
+      : form.password.length >= 8
+        ? "medium"
+        : "weak";
 
   return (
     <div className={styles.page}>
@@ -106,18 +322,20 @@ export default function AdminRegisterPage() {
       <section className={styles.hero}>
         <div className={styles.heroInner}>
           <span className={styles.eyebrow}>Admin Registration</span>
-          <h1 className={styles.title}>Create your <em>Admin Account</em></h1>
+          <h1 className={styles.title}>
+            Create your <em>Admin Account</em>
+          </h1>
           <p className={styles.subtitle}>
             Register as a Station Admin to manage queues, monitor analytics, and keep your station running smoothly.
           </p>
         </div>
       </section>
 
-      {/* Form card */}
+      {/* Form Card */}
       <section className={styles.section}>
         <div className={styles.card}>
 
-          {/* Step indicator */}
+          {/* Step Indicator */}
           <div className={styles.stepper}>
             {["Personal Details", "Station Info", "Security"].map((label, i) => (
               <div key={label} className={styles.stepItem}>
@@ -211,7 +429,7 @@ export default function AdminRegisterPage() {
             </div>
           )}
 
-          {/* ── STEP 2: Station Info ── */}
+          {/* ── STEP 2: Station Info + Map ── */}
           {step === 2 && (
             <div className={styles.formSection}>
               <h2 className={styles.sectionHeading}>Station Information</h2>
@@ -224,40 +442,117 @@ export default function AdminRegisterPage() {
                 {errors.stationName && <p className={styles.error}>{errors.stationName}</p>}
               </div>
 
+              <div className={styles.fieldFull}>
+                <label className={styles.label}>Station Address <span className={styles.req}>*</span></label>
+                <input className={`${styles.input} ${errors.stationAddress ? styles.inputError : ""}`}
+                  placeholder="e.g. No. 12, Galle Road, Colombo 03" value={form.stationAddress}
+                  onChange={(e) => set("stationAddress", e.target.value)} />
+                {errors.stationAddress && <p className={styles.error}>{errors.stationAddress}</p>}
+              </div>
+
               <div className={styles.fieldRow}>
                 <div className={styles.field}>
-                  <label className={styles.label}>Station Registration ID <span className={styles.req}>*</span></label>
-                  <input className={`${styles.input} ${errors.stationRegId ? styles.inputError : ""}`}
-                    placeholder="e.g. STA-2024-00123" value={form.stationRegId}
-                    onChange={(e) => set("stationRegId", e.target.value)} />
-                  {errors.stationRegId && <p className={styles.error}>{errors.stationRegId}</p>}
+                  <label className={styles.label}>Station City <span className={styles.req}>*</span></label>
+                  <input className={`${styles.input} ${errors.stationCity ? styles.inputError : ""}`}
+                    placeholder="e.g. Colombo" value={form.stationCity}
+                    onChange={(e) => set("stationCity", e.target.value)} />
+                  {errors.stationCity && <p className={styles.error}>{errors.stationCity}</p>}
                 </div>
                 <div className={styles.field}>
-                  <label className={styles.label}>Station Type <span className={styles.req}>*</span></label>
-                  <select className={`${styles.select} ${errors.stationType ? styles.inputError : ""}`}
-                    value={form.stationType} onChange={(e) => set("stationType", e.target.value)}>
-                    <option value="">Select type…</option>
-                    <option value="ceypetco">Ceypetco</option>
-                    <option value="ioc">IOC</option>
-                    <option value="other">Other</option>
+                  <label className={styles.label}>District <span className={styles.req}>*</span></label>
+                  <select className={`${styles.select} ${errors.stationDistrict ? styles.inputError : ""}`}
+                    value={form.stationDistrict} onChange={(e) => set("stationDistrict", e.target.value)}>
+                    <option value="">Select district…</option>
+                    {SL_DISTRICTS.map((d) => <option key={d} value={d}>{d}</option>)}
                   </select>
-                  {errors.stationType && <p className={styles.error}>{errors.stationType}</p>}
+                  {errors.stationDistrict && <p className={styles.error}>{errors.stationDistrict}</p>}
                 </div>
               </div>
 
-              <div className={styles.fieldFull}>
-                <label className={styles.label}>Your Role at Station <span className={styles.req}>*</span></label>
-                <select className={`${styles.select} ${errors.role ? styles.inputError : ""}`}
-                  value={form.role} onChange={(e) => set("role", e.target.value)}>
-                  <option value="">Select your role…</option>
-                  {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-                </select>
-                {errors.role && <p className={styles.error}>{errors.role}</p>}
+              <div className={styles.fieldRow}>
+                <div className={styles.field}>
+                  <label className={styles.label}>Contact Number <span className={styles.req}>*</span></label>
+                  <input className={`${styles.input} ${errors.stationContact ? styles.inputError : ""}`}
+                    type="tel" placeholder="07XXXXXXXX" value={form.stationContact}
+                    onChange={(e) => set("stationContact", e.target.value)} />
+                  {errors.stationContact && <p className={styles.error}>{errors.stationContact}</p>}
+                </div>
+                <div className={styles.field}></div>
               </div>
 
-              <div className={styles.infoNote}>
-                <span className={styles.infoNoteIcon}>ℹ️</span>
-                <p>Your Station Registration ID will be verified against the FuelPass registry before your account is activated.</p>
+              <div className={styles.fieldRow}>
+                <div className={styles.field}>
+                  <label className={styles.label}>Opening Time <span className={styles.req}>*</span></label>
+                  <input className={`${styles.input} ${errors.openingTime ? styles.inputError : ""}`}
+                    type="time" value={form.openingTime}
+                    onChange={(e) => set("openingTime", e.target.value)} />
+                  {errors.openingTime && <p className={styles.error}>{errors.openingTime}</p>}
+                </div>
+                <div className={styles.field}>
+                  <label className={styles.label}>Closing Time <span className={styles.req}>*</span></label>
+                  <input className={`${styles.input} ${errors.closingTime ? styles.inputError : ""}`}
+                    type="time" value={form.closingTime}
+                    onChange={(e) => set("closingTime", e.target.value)} />
+                  {errors.closingTime && <p className={styles.error}>{errors.closingTime}</p>}
+                </div>
+              </div>
+
+              {/* Map Picker */}
+              <div style={{ marginTop: 20 }}>
+                <label className={styles.label}>
+                  Station Location on Map <span className={styles.req}>*</span>
+                  <span className={styles.optional} style={{ marginLeft: 8 }}>— click to place pin</span>
+                </label>
+
+                {/* Coordinates display */}
+                <div style={{
+                  display: "flex", gap: 12, marginBottom: 10, alignItems: "center", flexWrap: "wrap"
+                }}>
+                  <div style={{
+                    background: form.latitude ? "#f0fdf4" : "#f8fafc",
+                    border: `1px solid ${form.latitude ? "#86efac" : "#e2e8f0"}`,
+                    borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600,
+                    color: form.latitude ? "#15803d" : "#64748b", minWidth: 160
+                  }}>
+                    📍 Lat: {form.latitude !== null ? form.latitude.toFixed(6) : "—"}
+                  </div>
+                  <div style={{
+                    background: form.longitude ? "#f0fdf4" : "#f8fafc",
+                    border: `1px solid ${form.longitude ? "#86efac" : "#e2e8f0"}`,
+                    borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600,
+                    color: form.longitude ? "#15803d" : "#64748b", minWidth: 160
+                  }}>
+                    📍 Lng: {form.longitude !== null ? form.longitude.toFixed(6) : "—"}
+                  </div>
+                  <button type="button" onClick={useMyLocation}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 6,
+                      padding: "8px 14px", background: "#eff6ff", border: "1px solid #bfdbfe",
+                      borderRadius: 8, fontSize: 13, fontWeight: 600, color: "#1d4ed8",
+                      cursor: "pointer", transition: "background 0.2s"
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#dbeafe"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "#eff6ff"; }}>
+                    🎯 Use My Location
+                  </button>
+                </div>
+
+                {/* Leaflet Map Container */}
+                <div
+                  ref={mapRef}
+                  style={{
+                    width: "100%", height: 380, borderRadius: 12,
+                    border: errors.latitude ? "2px solid #ef4444" : "2px solid #e2e8f0",
+                    overflow: "hidden", background: "#f1f5f9",
+                    position: "relative", zIndex: 0
+                  }}
+                />
+                {errors.latitude && (
+                  <p className={styles.error} style={{ marginTop: 6 }}>{errors.latitude}</p>
+                )}
+                <p style={{ fontSize: 12, color: "#64748b", marginTop: 6 }}>
+                  🗺️ Click anywhere on the map to set the station location. The map shows Sri Lanka — zoom in to find your exact location.
+                </p>
               </div>
             </div>
           )}
@@ -266,6 +561,15 @@ export default function AdminRegisterPage() {
           {step === 3 && (
             <div className={styles.formSection}>
               <h2 className={styles.sectionHeading}>Set Your Password</h2>
+
+              {apiError && (
+                <div style={{
+                  background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10,
+                  padding: "12px 16px", marginBottom: 16, color: "#991b1b", fontSize: 14
+                }}>
+                  ❌ {apiError}
+                </div>
+              )}
 
               <div className={styles.fieldFull}>
                 <label className={styles.label}>Password <span className={styles.req}>*</span></label>
@@ -282,16 +586,12 @@ export default function AdminRegisterPage() {
                 {errors.password && <p className={styles.error}>{errors.password}</p>}
                 {form.password && (
                   <div className={styles.strengthBar}>
-                    <div className={`${styles.strengthFill} ${
-                      form.password.length >= 12 && /[A-Z]/.test(form.password) && /\d/.test(form.password) && /[^A-Za-z0-9]/.test(form.password)
-                        ? styles.strengthStrong
-                        : form.password.length >= 8
-                        ? styles.strengthMed
-                        : styles.strengthWeak
-                    }`} />
+                    <div className={`${styles.strengthFill} ${strengthLevel === "strong" ? styles.strengthStrong
+                        : strengthLevel === "medium" ? styles.strengthMed
+                          : styles.strengthWeak
+                      }`} />
                     <span className={styles.strengthLabel}>
-                      {form.password.length >= 12 && /[A-Z]/.test(form.password) && /\d/.test(form.password) && /[^A-Za-z0-9]/.test(form.password)
-                        ? "Strong" : form.password.length >= 8 ? "Medium" : "Weak"}
+                      {strengthLevel === "strong" ? "Strong" : strengthLevel === "medium" ? "Medium" : "Weak"}
                     </span>
                   </div>
                 )}
@@ -326,7 +626,7 @@ export default function AdminRegisterPage() {
             </div>
           )}
 
-          {/* Navigation buttons */}
+          {/* Navigation */}
           <div className={styles.formActions}>
             <div>
               {step > 1 && (
@@ -338,7 +638,14 @@ export default function AdminRegisterPage() {
               {step < 3 ? (
                 <button className={styles.nextBtn} onClick={next}>Continue →</button>
               ) : (
-                <button className={styles.submitBtn} onClick={handleSubmit}>Create Admin Account</button>
+                <button
+                  className={styles.submitBtn}
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  style={{ opacity: loading ? 0.7 : 1 }}
+                >
+                  {loading ? "Creating Account…" : "Create Admin Account"}
+                </button>
               )}
             </div>
           </div>
@@ -347,7 +654,6 @@ export default function AdminRegisterPage() {
             Already have an account?{" "}
             <Link href="/adminlogin?role=admin" className={styles.link}>Sign in here</Link>
           </p>
-
         </div>
       </section>
     </div>

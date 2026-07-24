@@ -48,6 +48,8 @@ export interface AuthResponse {
   name?: string;
   phone?: string;
   vehicleNumber?: string;
+  stationId?: number;
+  stationName?: string;
   role?: string;
 }
 

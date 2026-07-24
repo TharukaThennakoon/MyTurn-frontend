@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import Image from "next/image";
@@ -10,6 +10,30 @@ import AdminHeader from "@/components/layout/AdminHeader";
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
+
+  const [adminData, setAdminData] = useState({
+    name: "Admin",
+    email: "",
+    phone: "",
+    stationId: null as number | null,
+    stationName: "Your Station",
+  });
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("adminUser");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setAdminData({
+          name: parsed.name || parsed.fullName || "Admin",
+          email: parsed.email || "",
+          phone: parsed.phone || "",
+          stationId: parsed.stationId || null,
+          stationName: parsed.stationName || "Your Station",
+        });
+      }
+    } catch (e) {}
+  }, []);
 
   const QUEUE_DATA = [
     { id: "883", plate: "B-4491-ZT", time: "10:15 AM" },
