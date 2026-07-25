@@ -7,10 +7,21 @@ import Image from "next/image";
 
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminHeader from "@/components/layout/AdminHeader";
+import apiClient from "@/services/apiClient";
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+interface DashboardData {
+  totalBookingsToday: number;
+  vehiclesInQueue: number;
+  vehiclesServedToday: number;
+  fuelAvailability?: Array<{
+    fuelType: string;
+    available: boolean;
+    status: string;
+  }>;
+}
+
 export default function AdminDashboard() {
-
+  const router = useRouter();
   const [adminData, setAdminData] = useState({
     name: "Admin",
     email: "",
@@ -19,27 +30,244 @@ export default function AdminDashboard() {
     stationName: "Your Station",
   });
 
+  const [metrics, setMetrics] = useState<DashboardData>({
+    totalBookingsToday: 0,
+    vehiclesInQueue: 0,
+    vehiclesServedToday: 0,
+    fuelAvailability: [],
+  });
+
+  const [loading, setLoading] = useState(true);
+
+  const [fuelStatus, setFuelStatus] = useState({
+    petrol: "AVAILABLE",
+    diesel: "AVAILABLE",
+  });
+
+  const [queueList, setQueueList] = useState<any[]>([]);
+
   useEffect(() => {
+    let currentStId: number | null = null;
     try {
       const stored = localStorage.getItem("adminUser");
       if (stored) {
         const parsed = JSON.parse(stored);
+        currentStId = parsed.stationId || null;
         setAdminData({
           name: parsed.name || parsed.fullName || "Admin",
           email: parsed.email || "",
           phone: parsed.phone || "",
-          stationId: parsed.stationId || null,
+          stationId: currentStId,
           stationName: parsed.stationName || "Your Station",
+        });
+
+        loadFuelStatusFromStorage(currentStId);
+        loadQueueFromStorage(currentStId);
+
+        if (currentStId) {
+          fetchDashboardMetrics(currentStId);
+        } else {
+          setLoading(false);
+        }
+      } else {
+        loadFuelStatusFromStorage(null);
+        loadQueueFromStorage(null);
+        setLoading(false);
+      }
+    } catch (e) {
+      setLoading(false);
+    }
+
+    const handleStorageChange = () => {
+      loadFuelStatusFromStorage(currentStId);
+      loadQueueFromStorage(currentStId);
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  const getDisplayVehiclePlate = (): string => {
+    // 1. Check top item in queueList
+    const topItem = queueList[0];
+    if (topItem) {
+      const v = topItem.vehiclePlate || topItem.vehicleNumber;
+      if (v && v.trim() !== "" && v !== adminData.stationName) {
+        return v;
+      }
+    }
+
+    // 2. Check direct user vehicle stored in localStorage
+    try {
+      const userVeh = localStorage.getItem("userVehicleNumber") || localStorage.getItem("vehicleNumber");
+      if (userVeh && userVeh.trim() !== "") return userVeh;
+
+      const userObj = localStorage.getItem("user");
+      if (userObj) {
+        const parsed = JSON.parse(userObj);
+        const v = parsed.vehicleNumber || parsed.vehicleRegistration || parsed.plateNumber;
+        if (v && v.trim() !== "") return v;
+      }
+    } catch (e) {}
+
+    // 3. Check active booking item
+    try {
+      const activeStr = localStorage.getItem("userActiveBooking");
+      if (activeStr) {
+        const activeObj = JSON.parse(activeStr);
+        const v = activeObj.vehiclePlate || activeObj.vehicleNumber;
+        if (v && v.trim() !== "") return v;
+      }
+    } catch (e) {}
+
+    return "WP CAB-8899";
+  };
+
+  const loadQueueFromStorage = (stId: number | null) => {
+    try {
+      const keys = [
+        "userActiveBooking",
+        "stationBookings_latest",
+        stId ? `stationBookings_${stId}` : null,
+        "stationBookings_general",
+      ].filter(Boolean) as string[];
+
+      for (const k of keys) {
+        const stored = localStorage.getItem(k);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setQueueList(parsed);
+            setMetrics((prev) => ({
+              ...prev,
+              totalBookingsToday: Math.max(prev.totalBookingsToday, parsed.length),
+              vehiclesInQueue: parsed.length,
+            }));
+            return parsed;
+          } else if (parsed && typeof parsed === "object" && parsed.tokenNumber) {
+            const single = [{
+              id: parsed.id || Date.now(),
+              tokenNumber: parsed.tokenNumber,
+              vehiclePlate: parsed.vehiclePlate || parsed.vehicleNumber || getDisplayVehiclePlate(),
+              fuelType: parsed.fuelType || "Petrol 95",
+              slotTime: parsed.slotTimeRange || "08:00 AM - 08:10 AM",
+              status: "WAITING",
+            }];
+            setQueueList(single);
+            setMetrics((prev) => ({
+              ...prev,
+              totalBookingsToday: Math.max(prev.totalBookingsToday, 1),
+              vehiclesInQueue: 1,
+            }));
+            return single;
+          }
+        }
+      }
+    } catch (e) {}
+    return [];
+  };
+
+  const loadFuelStatusFromStorage = (stId: number | null) => {
+    try {
+      const stored = localStorage.getItem("stationFuelStatus_latest") || (stId ? localStorage.getItem(`stationFuelStatus_${stId}`) : null);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setFuelStatus({
+          petrol: parsed.petrol || "AVAILABLE",
+          diesel: parsed.diesel || "AVAILABLE",
         });
       }
     } catch (e) {}
-  }, []);
+  };
 
-  const QUEUE_DATA = [
-    { id: "883", plate: "B-4491-ZT", time: "10:15 AM" },
-    { id: "884", plate: "D-1222-RT", time: "10:20 AM" },
-    { id: "885", plate: "F-9031-LL", time: "10:25 AM" },
-  ];
+  const handleCompleteFilling = () => {
+    const stId = adminData.stationId || 1;
+    const updatedList = queueList.slice(1);
+    setQueueList(updatedList);
+
+    localStorage.setItem(`stationBookings_${stId}`, JSON.stringify(updatedList));
+    localStorage.setItem("stationBookings_latest", JSON.stringify(updatedList));
+    localStorage.setItem("stationBookings_general", JSON.stringify(updatedList));
+
+    const servedCount = (metrics.vehiclesServedToday || 0) + 1;
+    const newQueueCount = Math.max(0, (metrics.vehiclesInQueue || 1) - 1);
+    const newMetrics = {
+      vehiclesServedToday: servedCount,
+      vehiclesInQueue: newQueueCount,
+      totalBookingsToday: Math.max(metrics.totalBookingsToday, servedCount + updatedList.length),
+    };
+
+    setMetrics((prev) => ({
+      ...prev,
+      ...newMetrics,
+    }));
+
+    localStorage.setItem("adminServedMetrics", JSON.stringify(newMetrics));
+    localStorage.setItem(`adminServedMetrics_${stId}`, JSON.stringify(newMetrics));
+
+    try {
+      const userActive = localStorage.getItem("userActiveBooking");
+      if (userActive) {
+        const parsed = JSON.parse(userActive);
+        const updatedActive = {
+          ...parsed,
+          status: "Completed",
+          tokenStatus: "SUCCESSFUL",
+          completedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        localStorage.setItem("userActiveBooking", JSON.stringify(updatedActive));
+      }
+    } catch (e) {}
+
+    window.dispatchEvent(new Event("storage"));
+  };
+
+  const fetchDashboardMetrics = async (stationId: number) => {
+    const localQueue = loadQueueFromStorage(stationId);
+    const activeCount = localQueue.filter(q => q.status === "WAITING" || q.status === "SERVING" || !q.status).length;
+    const servedStored = typeof window !== "undefined" ? localStorage.getItem("adminServedMetrics") || localStorage.getItem(`adminServedMetrics_${stationId}`) : null;
+    const localServed = servedStored ? JSON.parse(servedStored).vehiclesServedToday || 0 : 0;
+
+    try {
+      const res = await apiClient.get<DashboardData>("/dashboard", { stationId });
+      if (res.success && res.data) {
+        const totalB = Math.max(res.data.totalBookingsToday ?? 0, localQueue.length + localServed);
+        const activeQ = Math.max(res.data.vehiclesInQueue ?? 0, activeCount);
+        const servedT = Math.max(res.data.vehiclesServedToday ?? 0, localServed);
+        setMetrics({
+          totalBookingsToday: totalB,
+          vehiclesInQueue: activeQ,
+          vehiclesServedToday: servedT,
+          fuelAvailability: res.data.fuelAvailability || [],
+        });
+
+        if (res.data.fuelAvailability && res.data.fuelAvailability.length > 0) {
+          const p = res.data.fuelAvailability.find(f => f.fuelType.toLowerCase().includes("petrol"));
+          const d = res.data.fuelAvailability.find(f => f.fuelType.toLowerCase().includes("diesel"));
+          setFuelStatus({
+            petrol: p?.available ? "AVAILABLE" : "LIMITED",
+            diesel: d?.available ? "AVAILABLE" : "LIMITED",
+          });
+        }
+      } else {
+        setMetrics({
+          totalBookingsToday: Math.max(1, localQueue.length + localServed),
+          vehiclesInQueue: activeCount,
+          vehiclesServedToday: localServed,
+          fuelAvailability: [],
+        });
+      }
+    } catch (e) {
+      setMetrics({
+        totalBookingsToday: Math.max(1, localQueue.length + localServed),
+        vehiclesInQueue: activeCount,
+        vehiclesServedToday: localServed,
+        fuelAvailability: [],
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className={styles.root}>
@@ -62,14 +290,11 @@ export default function AdminDashboard() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                 </svg>
                 <span className={styles.badgeGreen}>
-                  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                  +12%
+                  Live
                 </span>
               </div>
               <span className={styles.statLabel}>Total Bookings Today</span>
-              <span className={styles.statValue}>1,284</span>
+              <span className={styles.statValue}>{loading ? "…" : metrics.totalBookingsToday}</span>
             </div>
 
             <div className={styles.statCard}>
@@ -84,7 +309,7 @@ export default function AdminDashboard() {
                 </span>
               </div>
               <span className={styles.statLabel}>Active Queue Count</span>
-              <span className={styles.statValue}>42</span>
+              <span className={styles.statValue}>{loading ? "…" : metrics.vehiclesInQueue}</span>
             </div>
 
             <div className={styles.statCard}>
@@ -94,8 +319,8 @@ export default function AdminDashboard() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              <span className={styles.statLabel}>Upcoming Slots (Next Hr)</span>
-              <span className={styles.statValue}>156</span>
+              <span className={styles.statLabel}>Vehicles Served Today</span>
+              <span className={styles.statValue}>{loading ? "…" : metrics.vehiclesServedToday}</span>
             </div>
 
             <div className={styles.statCard}>
@@ -105,10 +330,14 @@ export default function AdminDashboard() {
                   <rect x="4" y="5" width="10" height="16" rx="2" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}/>
                   <path d="M14 8h2a2 2 0 012 2v2a2 2 0 002 2h0V9l-3-4" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}/>
                 </svg>
-                <span className={styles.badgeRed}>CRITICAL</span>
+                <span className={fuelStatus.petrol === "AVAILABLE" ? styles.badgeGreen : fuelStatus.petrol === "LIMITED" ? styles.badgeAmber : styles.badgeRed}>
+                  {fuelStatus.petrol}
+                </span>
               </div>
-              <span className={styles.statLabel}>Fuel Levels (P/D)</span>
-              <span className={styles.statValue}>12% / 48%</span>
+              <span className={styles.statLabel}>Fuel Availability (Petrol / Diesel)</span>
+              <span className={styles.statValue}>
+                {fuelStatus.petrol} / {fuelStatus.diesel}
+              </span>
             </div>
           </div>
 
@@ -123,23 +352,37 @@ export default function AdminDashboard() {
                 </span>
               </div>
 
-              <span className={styles.nowServingSubLabel}>Token Identifier</span>
+              <span className={styles.nowServingSubLabel}>Station Token</span>
               <div className={styles.nowServingTokenRow}>
-                <div className={styles.tokenId}>#TK-882</div>
+                <div className={styles.tokenId}>
+                  {queueList.length > 0
+                    ? `#TK-${queueList[0].tokenNumber}`
+                    : (metrics.vehiclesInQueue > 0 ? `#TK-${metrics.vehiclesServedToday + 1}` : "NONE")}
+                </div>
                 <div className={styles.vehiclePlateBox}>
-                  <span className={styles.vehiclePlateLabel}>VEHICLE PLATE</span>
-                  <span className={styles.vehiclePlateValue}>W-7712 X</span>
+                  <span className={styles.vehiclePlateLabel}>VEHICLE NUMBER</span>
+                  <span className={styles.vehiclePlateValue}>
+                    {getDisplayVehiclePlate()}
+                  </span>
                 </div>
               </div>
 
               <div className={styles.actionRow}>
-                <button className={styles.btnComplete}>
+                <button
+                  className={styles.btnComplete}
+                  onClick={handleCompleteFilling}
+                  disabled={metrics.vehiclesInQueue === 0 && queueList.length === 0}
+                >
                   <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                   Complete Filling
                 </button>
-                <button className={styles.btnNoShow}>
+                <button
+                  className={styles.btnNoShow}
+                  onClick={handleCompleteFilling}
+                  disabled={metrics.vehiclesInQueue === 0 && queueList.length === 0}
+                >
                   <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                   </svg>
@@ -156,31 +399,31 @@ export default function AdminDashboard() {
                 </svg>
                 <div>
                   <span className={styles.stationLabel}>Station Status</span>
-                  <span className={styles.stationSub}>Station is currently OPEN</span>
+                  <span className={styles.stationSub}>{adminData.stationName} is currently OPEN</span>
                 </div>
               </div>
 
               <div className={styles.quickActions}>
-                <button className={styles.btnFuelUpdate}>
+                <button className={styles.btnFuelUpdate} onClick={() => router.push("/adminfuel")}>
                   <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   <span className={styles.btnFuelLabel}>Update Fuel Availability</span>
                 </button>
 
-                <button className={styles.btnPause}>
+                <button className={styles.btnPause} onClick={() => router.push("/adminqueue")}>
                   <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <span className={styles.btnPauseLabel}>Pause New Bookings</span>
+                  <span className={styles.btnPauseLabel}>Manage Queue</span>
                 </button>
               </div>
 
-              <button className={styles.btnTransactions}>
+              <button className={styles.btnTransactions} onClick={() => router.push("/adminanalytics")}>
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#1d4ed8">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                View Recent Transactions
+                View Analytics & Reports
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
@@ -193,48 +436,55 @@ export default function AdminDashboard() {
             <div className={styles.queueCard}>
               <div className={styles.cardHeader}>
                 <span className={styles.cardTitle}>Upcoming Queue</span>
-                <button className={styles.viewAllBtn}>View All</button>
+                <button className={styles.viewAllBtn} onClick={() => router.push("/adminqueue")}>View Queue</button>
               </div>
 
               <div className={styles.tableRows}>
-                {QUEUE_DATA.map((item) => (
-                  <div key={item.id} className={styles.tableRow}>
-                    <div className={styles.rowId}>{item.id}</div>
-                    <div className={styles.rowInfo}>
-                      <span className={styles.rowPlate}>{item.plate}</span>
-                      <span className={styles.rowTime}>Scheduled: {item.time}</span>
-                    </div>
-                    <button className={styles.rowMenuBtn}>
-                      <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                      </svg>
-                    </button>
+                {queueList.length === 0 && metrics.vehiclesInQueue === 0 ? (
+                  <div style={{ padding: "24px 0", textAlign: "center", color: "#64748b", fontSize: 14 }}>
+                    No active vehicles currently waiting in queue for {adminData.stationName}.
                   </div>
-                ))}
+                ) : (
+                  (queueList.length > 0 ? queueList : [{
+                    id: 1,
+                    tokenNumber: metrics.vehiclesServedToday + 1,
+                    vehiclePlate: "WP CAB-1234",
+                    fuelType: "Petrol 95",
+                    slotTime: "Today",
+                  }]).map((item, idx) => (
+                    <div key={item.id || idx} className={styles.tableRow}>
+                      <div className={styles.rowId}>#TK-{item.tokenNumber}</div>
+                      <div className={styles.rowInfo}>
+                        <span className={styles.rowPlate}>{item.vehiclePlate || item.vehicleNumber || "WP CAB-1234"}</span>
+                        <span className={styles.rowTime}>{item.fuelType || "Petrol 95"} · {item.slotTime || item.slotTimeRange || "08:00 AM - 08:10 AM"}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
             <div className={styles.velocityCard}>
-              <span className={styles.cardTitle}>Service Velocity</span>
+              <span className={styles.cardTitle}>Station Service Metrics</span>
 
               <div className={styles.metrics}>
                 <div className={styles.metric}>
                   <div className={styles.metricHeader}>
-                    <span className={styles.metricLabel}>AVG. SERVING TIME</span>
-                    <span className={`${styles.metricValue} ${styles.metricValueBlue}`}>4.2 MINS</span>
+                    <span className={styles.metricLabel}>TOTAL BOOKINGS</span>
+                    <span className={`${styles.metricValue} ${styles.metricValueBlue}`}>{metrics.totalBookingsToday}</span>
                   </div>
                   <div className={styles.metricTrack}>
-                    <div className={styles.metricFill} style={{ width: '70%', background: '#3b82f6' }} />
+                    <div className={styles.metricFill} style={{ width: metrics.totalBookingsToday > 0 ? '100%' : '0%', background: '#3b82f6' }} />
                   </div>
                 </div>
 
                 <div className={styles.metric}>
                   <div className={styles.metricHeader}>
-                    <span className={styles.metricLabel}>STATION CAPACITY</span>
-                    <span className={`${styles.metricValue} ${styles.metricValueGreen}`}>88%</span>
+                    <span className={styles.metricLabel}>SERVED TODAY</span>
+                    <span className={`${styles.metricValue} ${styles.metricValueGreen}`}>{metrics.vehiclesServedToday}</span>
                   </div>
                   <div className={styles.metricTrack}>
-                    <div className={styles.metricFill} style={{ width: '88%', background: '#10b981' }} />
+                    <div className={styles.metricFill} style={{ width: metrics.totalBookingsToday > 0 ? `${Math.min(100, Math.round((metrics.vehiclesServedToday / Math.max(1, metrics.totalBookingsToday)) * 100))}%` : '0%', background: '#10b981' }} />
                   </div>
                 </div>
               </div>
@@ -244,7 +494,7 @@ export default function AdminDashboard() {
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
                 <p className={styles.advisoryText}>
-                  High volume detected. Suggest opening Pump 4 to maintain average serving time below 5 minutes.
+                  Station status: active and responding to real-time queue tokens for {adminData.stationName}.
                 </p>
               </div>
             </div>

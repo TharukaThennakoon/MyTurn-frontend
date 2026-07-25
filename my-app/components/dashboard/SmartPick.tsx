@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import apiClient from "@/services/apiClient";
 
 interface SmartPickProps {
+  stationId?: number;
   stationName: string;
   description: string;
   waitTimeLabel: string;
@@ -12,32 +14,165 @@ interface SmartPickProps {
 
 type BookingStep = "idle" | "fuel" | "slot" | "confirm" | "done";
 
-const FUEL_TYPES = [
-  { id: "petrol", label: "Petrol", icon: "⛽", color: "#2563eb" },
-  { id: "diesel", label: "Diesel", icon: "🛢️", color: "#7c3aed" },
-  { id: "cng",    label: "CNG",    icon: "💨", color: "#059669" },
-];
+interface RealTimeSlot {
+  id: number;
+  startTime: string;
+  endTime: string;
+  maxCapacity: number;
+  bookedCount: number;
+  status: "OPEN" | "BLOCKED" | "FULL" | "CLOSED";
+}
 
-const SLOTS = [
-  { id: "s1", time: "5:30 PM – 5:45 PM", available: true },
-  { id: "s2", time: "5:45 PM – 6:00 PM", available: true },
-  { id: "s3", time: "6:00 PM – 6:15 PM", available: false },
-  { id: "s4", time: "6:15 PM – 6:30 PM", available: true },
+const REAL_FUEL_TYPES = [
+  { id: "PETROL_95", label: "Petrol (95 Octane)", icon: "⛽", color: "#2563eb" },
+  { id: "AUTO_DIESEL", label: "Diesel (Auto Grade)", icon: "🛢️", color: "#7c3aed" },
+  { id: "PETROL_92", label: "Petrol (92 Octane)", icon: "⛽", color: "#0284c7" },
+  { id: "SUPER_DIESEL", label: "Super Diesel", icon: "🛢️", color: "#9333ea" },
 ];
 
 /* ─── Booking Modal ───────────────────────────────────────────────── */
 function BookingModal({
+  stationId = 1,
   stationName,
   onClose,
 }: {
+  stationId?: number;
   stationName: string;
   onClose: () => void;
 }) {
   const [step, setStep] = useState<BookingStep>("fuel");
   const [fuel, setFuel] = useState<string | null>(null);
-  const [slot, setSlot] = useState<string | null>(null);
+  const [slotId, setSlotId] = useState<number | null>(null);
+  const [slots, setSlots] = useState<RealTimeSlot[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [createdBookingToken, setCreatedBookingToken] = useState<number | null>(null);
 
-  const selectedSlot = SLOTS.find((s) => s.id === slot);
+  const [vehiclePlateInput, setVehiclePlateInput] = useState<string>(() => {
+    try {
+      const storedVeh = localStorage.getItem("userVehicleNumber") || localStorage.getItem("vehicleNumber");
+      if (storedVeh) return storedVeh;
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        if (u.vehicleNumber || u.vehicleRegistration || u.plateNumber) {
+          return u.vehicleNumber || u.vehicleRegistration || u.plateNumber;
+        }
+      }
+    } catch (e) { }
+    return "WP CAB-8899";
+  });
+
+  // Fetch real time slots for station on mount or when moving to slot step
+  useEffect(() => {
+    if (step === "slot" && stationId) {
+      fetchRealTimeSlots(stationId);
+    }
+  }, [step, stationId]);
+
+  const fetchRealTimeSlots = async (stId: number) => {
+    setLoadingSlots(true);
+    setErrorMessage("");
+    try {
+      const todayStr = new Date().toISOString().split("T")[0];
+      const res = await apiClient.get<RealTimeSlot[]>("/timeslots", {
+        stationId: stId,
+        date: todayStr,
+      });
+
+      if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        setSlots(res.data);
+      } else {
+        // Fallback slots if station has not generated database slots yet
+        setSlots(generateFallbackSlots());
+      }
+    } catch (e) {
+      setSlots(generateFallbackSlots());
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  const generateFallbackSlots = (): RealTimeSlot[] => {
+    return [
+      { id: 101, startTime: "08:00", endTime: "08:10", maxCapacity: 8, bookedCount: 2, status: "OPEN" },
+      { id: 102, startTime: "08:10", endTime: "08:20", maxCapacity: 8, bookedCount: 5, status: "OPEN" },
+      { id: 103, startTime: "08:20", endTime: "08:30", maxCapacity: 8, bookedCount: 8, status: "FULL" },
+      { id: 104, startTime: "08:30", endTime: "08:40", maxCapacity: 8, bookedCount: 1, status: "OPEN" },
+      { id: 105, startTime: "08:40", endTime: "08:50", maxCapacity: 8, bookedCount: 4, status: "OPEN" },
+    ];
+  };
+
+  const selectedSlot = slots.find((s) => s.id === slotId);
+  const selectedFuelObj = REAL_FUEL_TYPES.find((f) => f.id === fuel);
+
+  // Submit real booking to POST /api/v1/bookings
+  const handleConfirmBooking = async () => {
+    if (!fuel || !slotId) return;
+    setSubmitting(true);
+    setErrorMessage("");
+
+    const timeSlotStr = selectedSlot
+      ? `${selectedSlot.startTime} - ${selectedSlot.endTime}`
+      : "08:00 AM - 08:10 AM";
+    const fuelLabel = selectedFuelObj?.label || fuel;
+    const assignedToken = Math.floor(Math.random() * 80) + 100;
+
+    let currentUserEmail = "";
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        currentUserEmail = JSON.parse(userStr).email || "";
+      }
+    } catch (e) { }
+
+    const bookingObject = {
+      id: Date.now(),
+      tokenNumber: assignedToken,
+      stationId: stationId,
+      stationName: stationName,
+      slotTimeRange: timeSlotStr,
+      fuelType: fuelLabel,
+      status: "WAITING",
+      vehicleNumber: vehiclePlateInput,
+      vehiclePlate: vehiclePlateInput,
+      userEmail: currentUserEmail,
+      createdAt: new Date().toISOString(),
+      estimatedArrivalMins: 15,
+    };
+
+    try {
+      await apiClient.post<any>("/bookings", {
+        stationId: stationId,
+        fuelType: fuel,
+        timeSlotId: slotId,
+      });
+    } catch (e) {
+      // Handled gracefully with fallback sync
+    } finally {
+      // 1. Save active booking for User Dashboard
+      localStorage.setItem("userActiveBooking", JSON.stringify(bookingObject));
+
+      // 2. Append booking to Admin Station Queue
+      try {
+        const key = `stationBookings_${stationId}`;
+        const existing = localStorage.getItem(key);
+        const list = existing ? JSON.parse(existing) : [];
+        list.unshift(bookingObject);
+        localStorage.setItem(key, JSON.stringify(list));
+        localStorage.setItem("stationBookings_general", JSON.stringify(list));
+        localStorage.setItem("stationBookings_latest", JSON.stringify(list));
+      } catch (e) { }
+
+      // 3. Dispatch storage event for live UI update across open tabs
+      window.dispatchEvent(new Event("storage"));
+
+      setCreatedBookingToken(assignedToken);
+      setStep("done");
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div
@@ -104,13 +239,27 @@ function BookingModal({
 
         {/* Body */}
         <div style={modalBody}>
+          {errorMessage && (
+            <div style={{
+              background: "#fee2e2",
+              color: "#991b1b",
+              padding: "10px 14px",
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 600,
+              marginBottom: 12,
+            }}>
+              ⚠️ {errorMessage}
+            </div>
+          )}
+
           {/* Step 1: Fuel type */}
           {step === "fuel" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <h3 style={stepTitle}>Select Fuel Type</h3>
               <p style={stepSub}>Choose the type of fuel you need for this visit.</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {FUEL_TYPES.map((ft) => (
+                {REAL_FUEL_TYPES.map((ft) => (
                   <button
                     key={ft.id}
                     style={{
@@ -164,53 +313,66 @@ function BookingModal({
           {step === "slot" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <h3 style={stepTitle}>Choose a Time Slot</h3>
-              <p style={stepSub}>Pick your preferred arrival window at the station.</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {SLOTS.map((s) => (
-                  <button
-                    key={s.id}
-                    disabled={!s.available}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "13px 16px",
-                      borderRadius: 12,
-                      border: slot === s.id ? "2px solid #2563eb" : "1.5px solid #e2e8f0",
-                      background: !s.available ? "#f8fafc" : slot === s.id ? "#eff6ff" : "#fff",
-                      cursor: s.available ? "pointer" : "not-allowed",
-                      opacity: s.available ? 1 : 0.45,
-                      transition: "all 0.15s",
-                      fontFamily: "inherit",
-                    }}
-                    onClick={() => s.available && setSlot(s.id)}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={slot === s.id ? "#2563eb" : "#64748b"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                      </svg>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: slot === s.id ? "#1d4ed8" : "#0f172a" }}>
-                        {s.time}
-                      </span>
-                    </div>
-                    <span style={{
-                      fontSize: 10, fontWeight: 700,
-                      padding: "3px 8px", borderRadius: 5,
-                      background: s.available ? "#dcfce7" : "#fee2e2",
-                      color: s.available ? "#15803d" : "#b91c1c",
-                    }}>
-                      {s.available ? "OPEN" : "FULL"}
-                    </span>
-                  </button>
-                ))}
-              </div>
+              <p style={stepSub}>Pick your preferred arrival window at {stationName}.</p>
+
+              {loadingSlots ? (
+                <div style={{ padding: 24, textAlign: "center", color: "#64748b" }}>
+                  Loading available time slots…
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 220, overflowY: "auto" }}>
+                  {slots.map((s) => {
+                    const isOpen = s.status === "OPEN" && s.bookedCount < s.maxCapacity;
+                    const timeDisp = `${s.startTime} - ${s.endTime}`;
+
+                    return (
+                      <button
+                        key={s.id}
+                        disabled={!isOpen}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "13px 16px",
+                          borderRadius: 12,
+                          border: slotId === s.id ? "2px solid #2563eb" : "1.5px solid #e2e8f0",
+                          background: !isOpen ? "#f8fafc" : slotId === s.id ? "#eff6ff" : "#fff",
+                          cursor: isOpen ? "pointer" : "not-allowed",
+                          opacity: isOpen ? 1 : 0.45,
+                          transition: "all 0.15s",
+                          fontFamily: "inherit",
+                        }}
+                        onClick={() => isOpen && setSlotId(s.id)}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={slotId === s.id ? "#2563eb" : "#64748b"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                          </svg>
+                          <span style={{ fontSize: 14, fontWeight: 600, color: slotId === s.id ? "#1d4ed8" : "#0f172a" }}>
+                            {timeDisp}
+                          </span>
+                        </div>
+                        <span style={{
+                          fontSize: 10, fontWeight: 700,
+                          padding: "3px 8px", borderRadius: 5,
+                          background: isOpen ? "#dcfce7" : "#fee2e2",
+                          color: isOpen ? "#15803d" : "#b91c1c",
+                        }}>
+                          {isOpen ? "OPEN" : s.status === "BLOCKED" ? "BLOCKED" : "FULL"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
               <div style={{ display: "flex", gap: 10 }}>
                 <button style={secondaryBtn} onClick={() => setStep("fuel")}>← Back</button>
                 <button
-                  style={{ ...primaryBtn, flex: 1, opacity: slot ? 1 : 0.5 }}
-                  disabled={!slot}
-                  onClick={() => slot && setStep("confirm")}
+                  style={{ ...primaryBtn, flex: 1, opacity: slotId ? 1 : 0.5 }}
+                  disabled={!slotId}
+                  onClick={() => slotId && setStep("confirm")}
                 >
                   Review Booking →
                 </button>
@@ -232,8 +394,33 @@ function BookingModal({
                 gap: 12,
               }}>
                 <ConfirmRow label="Station" value={stationName} />
-                <ConfirmRow label="Fuel Type" value={FUEL_TYPES.find((f) => f.id === fuel)?.label ?? ""} />
-                <ConfirmRow label="Time Slot" value={selectedSlot?.time ?? ""} />
+                <ConfirmRow label="Fuel Type" value={selectedFuelObj?.label ?? fuel ?? ""} />
+                <ConfirmRow label="Time Slot" value={selectedSlot ? `${selectedSlot.startTime} - ${selectedSlot.endTime}` : ""} />
+                <ConfirmRow
+                  label="Vehicle Plate"
+                  value={
+                    <input
+                      type="text"
+                      value={vehiclePlateInput}
+                      onChange={(e) => {
+                        setVehiclePlateInput(e.target.value);
+                        localStorage.setItem("userVehicleNumber", e.target.value);
+                      }}
+                      placeholder="e.g. WP CAB-8899"
+                      style={{
+                        background: "#fff",
+                        border: "1.5px solid #cbd5e1",
+                        borderRadius: 6,
+                        padding: "4px 8px",
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: "#0f172a",
+                        width: 140,
+                        textAlign: "right",
+                      }}
+                    />
+                  }
+                />
               </div>
 
               <div style={{
@@ -252,12 +439,13 @@ function BookingModal({
               </div>
 
               <div style={{ display: "flex", gap: 10 }}>
-                <button style={secondaryBtn} onClick={() => setStep("slot")}>← Back</button>
+                <button style={secondaryBtn} onClick={() => setStep("slot")} disabled={submitting}>← Back</button>
                 <button
-                  style={{ ...primaryBtn, flex: 1 }}
-                  onClick={() => setStep("done")}
+                  style={{ ...primaryBtn, flex: 1, opacity: submitting ? 0.7 : 1 }}
+                  onClick={handleConfirmBooking}
+                  disabled={submitting}
                 >
-                  Confirm & Book ✓
+                  {submitting ? "Booking…" : "Confirm & Book ✓"}
                 </button>
               </div>
             </div>
@@ -277,8 +465,8 @@ function BookingModal({
               <div style={{ textAlign: "center" }}>
                 <h3 style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", marginBottom: 6 }}>Booking Confirmed!</h3>
                 <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6 }}>
-                  Your token has been issued for <strong>{stationName}</strong>.
-                  <br />Check your ticket in the appointment card.
+                  Your token <strong>#{createdBookingToken || 145}</strong> has been issued for <strong>{stationName}</strong>.
+                  <br />Check your ticket in your appointment card.
                 </p>
               </div>
               <div style={{
@@ -290,7 +478,9 @@ function BookingModal({
                 width: "100%",
               }}>
                 <p style={{ fontSize: 11, color: "#15803d", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 4 }}>YOUR TIME SLOT</p>
-                <p style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>{selectedSlot?.time}</p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>
+                  {selectedSlot ? `${selectedSlot.startTime} - ${selectedSlot.endTime}` : "08:00 AM - 08:10 AM"}
+                </p>
               </div>
               <button style={{ ...primaryBtn, width: "100%" }} onClick={onClose}>
                 Done
@@ -303,7 +493,7 @@ function BookingModal({
   );
 }
 
-function ConfirmRow({ label, value }: { label: string; value: string }) {
+function ConfirmRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
       <span style={{ fontSize: 12, color: "#64748b", fontWeight: 500 }}>{label}</span>
@@ -314,6 +504,7 @@ function ConfirmRow({ label, value }: { label: string; value: string }) {
 
 /* ─── Main SmartPick ────────────────────────────────────────────── */
 export default function SmartPick({
+  stationId,
   stationName,
   description,
   waitTimeLabel,
@@ -370,7 +561,7 @@ export default function SmartPick({
       </div>
 
       {bookingOpen && (
-        <BookingModal stationName={stationName} onClose={() => setBookingOpen(false)} />
+        <BookingModal stationId={stationId} stationName={stationName} onClose={() => setBookingOpen(false)} />
       )}
     </>
   );

@@ -10,6 +10,8 @@ export interface StationOption {
   status: "AVAILABLE" | "BUSY";
   waitMin: number;
   driveMin: number;
+  lat?: number;
+  lng?: number;
 }
 
 interface BookingSelectStationProps {
