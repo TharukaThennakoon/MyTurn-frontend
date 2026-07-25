@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import timeSlotService, { TimeSlotResponse } from "@/services/timeSlotService";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Fuel {
@@ -159,6 +160,24 @@ function StationCard({ station }: { station: Station }) {
   const st = STATUS_MAP[station.status];
   const isClosed = station.status === "CLOSED";
 
+  // Real-time slots state
+  const [liveSlots, setLiveSlots] = useState<TimeSlotResponse[] | null>(null);
+
+  useEffect(() => {
+    if (isClosed) return;
+    const stationId = parseInt(station.id, 10);
+    if (isNaN(stationId)) return; // mock IDs are strings — skip API call for mocks
+    const today = new Date().toISOString().split("T")[0];
+    timeSlotService
+      .getAllSlotsForDate(stationId, today)
+      .then((res) => { if (res.success) setLiveSlots(res.data); })
+      .catch(() => {/* silently fall back to mock */});
+  }, [station.id, isClosed]);
+
+  // Derived slot stats
+  const freeCount = liveSlots?.filter((s) => s.status === "OPEN" && s.availableCapacity > 0).length ?? station.slots;
+  const nextSlot = liveSlots?.find((s) => s.status === "OPEN" && s.availableCapacity > 0);
+
   return (
     <div style={cardStyles.card}>
       {/* Top row */}
@@ -193,9 +212,9 @@ function StationCard({ station }: { station: Station }) {
         </div>
         <div style={cardStyles.metricDivider} />
         <div style={cardStyles.metric}>
-          <p style={cardStyles.mLabel}>SLOTS LEFT</p>
-          <p style={{ ...cardStyles.mValue, color: station.slots === 0 ? "#ef4444" : station.slots <= 2 ? "#f59e0b" : "#15803d" }}>
-            {isClosed ? "—" : station.slots === 0 ? "Full" : station.slots}
+          <p style={cardStyles.mLabel}>FREE SLOTS</p>
+          <p style={{ ...cardStyles.mValue, color: freeCount === 0 ? "#ef4444" : freeCount <= 2 ? "#f59e0b" : "#15803d" }}>
+            {isClosed ? "—" : freeCount === 0 ? "Full" : freeCount}
           </p>
         </div>
         <div style={cardStyles.metricDivider} />
@@ -217,6 +236,43 @@ function StationCard({ station }: { station: Station }) {
         })}
       </div>
 
+      {/* Live Slots section — shown when real API data is available */}
+      {!isClosed && liveSlots && liveSlots.length > 0 && (
+        <div style={cardStyles.slotsSection}>
+          <p style={cardStyles.slotsTitle}>TODAY&apos;S SLOTS</p>
+          <div style={cardStyles.slotsMiniGrid}>
+            {liveSlots.slice(0, 6).map((s) => {
+              const isOpen = s.status === "OPEN" && s.availableCapacity > 0;
+              const isBlocked = s.status === "BLOCKED" || s.status === "CLOSED";
+              return (
+                <span
+                  key={s.id}
+                  title={`${s.startTime.substring(0, 5)} – ${s.endTime.substring(0, 5)} · ${s.availableCapacity} free`}
+                  style={{
+                    ...cardStyles.slotChip,
+                    background: isBlocked ? "#f3e8ff" : isOpen ? "#dcfce7" : "#fee2e2",
+                    color: isBlocked ? "#7c3aed" : isOpen ? "#15803d" : "#b91c1c",
+                  }}
+                >
+                  {s.startTime.substring(0, 5)}
+                </span>
+              );
+            })}
+            {liveSlots.length > 6 && (
+              <span style={{ ...cardStyles.slotChip, background: "#f1f5f9", color: "#64748b" }}>
+                +{liveSlots.length - 6}
+              </span>
+            )}
+          </div>
+          {nextSlot && (
+            <p style={cardStyles.nextSlot}>
+              ⏰ Next free: <strong>{nextSlot.startTime.substring(0, 5)}</strong>
+              {" · "}{nextSlot.availableCapacity} spot{nextSlot.availableCapacity !== 1 ? "s" : ""} left
+            </p>
+          )}
+        </div>
+      )}
+
       {/* CTA */}
       <div style={cardStyles.footer}>
         <span style={cardStyles.districtTag}>{station.district}</span>
@@ -227,10 +283,10 @@ function StationCard({ station }: { station: Station }) {
             href="/choose-role"
             style={{
               ...cardStyles.bookBtn,
-              ...(station.slots === 0 ? cardStyles.bookBtnDisabled : {}),
+              ...(freeCount === 0 ? cardStyles.bookBtnDisabled : {}),
             }}
           >
-            {station.slots === 0 ? "Join Waitlist" : "Book Now →"}
+            {freeCount === 0 ? "Join Waitlist" : "Book Now →"}
           </Link>
         )}
       </div>
@@ -439,6 +495,23 @@ const cardStyles: Record<string, React.CSSProperties> = {
   fuelChip: {
     fontSize: 10, fontWeight: 600, padding: "4px 10px",
     borderRadius: 20, letterSpacing: "0.02em",
+  },
+  // Live slots section
+  slotsSection: {
+    background: "#f8fafc", borderRadius: 10, padding: "10px 12px",
+    border: "1px solid #f1f5f9",
+  },
+  slotsTitle: {
+    fontSize: 9, fontWeight: 800, color: "#94a3b8",
+    letterSpacing: "0.12em", margin: "0 0 8px",
+  },
+  slotsMiniGrid: { display: "flex", flexWrap: "wrap" as const, gap: 5 },
+  slotChip: {
+    fontSize: 10, fontWeight: 700, padding: "3px 8px",
+    borderRadius: 6, letterSpacing: "0.01em",
+  },
+  nextSlot: {
+    fontSize: 11, color: "#64748b", margin: "8px 0 0", lineHeight: 1.4,
   },
   footer: {
     display: "flex", justifyContent: "space-between",

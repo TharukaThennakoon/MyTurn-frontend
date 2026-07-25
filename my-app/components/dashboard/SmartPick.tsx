@@ -60,7 +60,7 @@ function BookingModal({
           return u.vehicleNumber || u.vehicleRegistration || u.plateNumber;
         }
       }
-    } catch (e) {}
+    } catch (e) { }
     return "WP CAB-8899";
   });
 
@@ -125,7 +125,7 @@ function BookingModal({
       if (userStr) {
         currentUserEmail = JSON.parse(userStr).email || "";
       }
-    } catch (e) {}
+    } catch (e) { }
 
     const bookingObject = {
       id: Date.now(),
@@ -135,8 +135,8 @@ function BookingModal({
       slotTimeRange: timeSlotStr,
       fuelType: fuelLabel,
       status: "WAITING",
-      vehicleNumber: userVehicleNum,
-      vehiclePlate: userVehicleNum,
+      vehicleNumber: vehiclePlateInput,
+      vehiclePlate: vehiclePlateInput,
       userEmail: currentUserEmail,
       createdAt: new Date().toISOString(),
       estimatedArrivalMins: 15,
@@ -163,7 +163,7 @@ function BookingModal({
         localStorage.setItem(key, JSON.stringify(list));
         localStorage.setItem("stationBookings_general", JSON.stringify(list));
         localStorage.setItem("stationBookings_latest", JSON.stringify(list));
-      } catch (e) {}
+      } catch (e) { }
 
       // 3. Dispatch storage event for live UI update across open tabs
       window.dispatchEvent(new Event("storage"));
@@ -314,7 +314,7 @@ function BookingModal({
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <h3 style={stepTitle}>Choose a Time Slot</h3>
               <p style={stepSub}>Pick your preferred arrival window at {stationName}.</p>
-              
+
               {loadingSlots ? (
                 <div style={{ padding: 24, textAlign: "center", color: "#64748b" }}>
                   Loading available time slots…

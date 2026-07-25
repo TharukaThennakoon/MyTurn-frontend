@@ -41,7 +41,7 @@ export default function DashboardTopbar({
           vehicleNumber: parsed.vehicleNumber || "Not registered",
         });
       }
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   useEffect(() => {

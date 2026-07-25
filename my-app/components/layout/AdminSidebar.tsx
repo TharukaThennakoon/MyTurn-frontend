@@ -91,7 +91,7 @@ export default function AdminSidebar({ activeNav }: AdminSidebarProps) {
           stationName: parsed.stationName || "Station",
         });
       }
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   const NAV_ITEMS = [
@@ -131,29 +131,29 @@ export default function AdminSidebar({ activeNav }: AdminSidebarProps) {
 
       <div className={styles.sidebarFooter}>
         <div className={styles.statusWrapper}>
-          <button 
+          <button
             className={styles.updateBtn}
             onClick={() => setShowStatusMenu(!showStatusMenu)}
           >
             Update Status
           </button>
-          
+
           {showStatusMenu && (
             <div className={styles.statusMenu}>
               <div className={styles.statusMenuHeader}>Set Station Status</div>
-              <button 
+              <button
                 className={`${styles.statusMenuItem} ${currentStatus === "Online" ? styles.activeStatus : ""}`}
                 onClick={() => { setCurrentStatus("Online"); setShowStatusMenu(false); }}
               >
                 <span className={styles.dotGreen}></span> Online
               </button>
-              <button 
+              <button
                 className={`${styles.statusMenuItem} ${currentStatus === "Maintenance" ? styles.activeStatus : ""}`}
                 onClick={() => { setCurrentStatus("Maintenance"); setShowStatusMenu(false); }}
               >
                 <span className={styles.dotYellow}></span> Maintenance
               </button>
-              <button 
+              <button
                 className={`${styles.statusMenuItem} ${currentStatus === "Offline" ? styles.activeStatus : ""}`}
                 onClick={() => { setCurrentStatus("Offline"); setShowStatusMenu(false); }}
               >
@@ -183,7 +183,7 @@ export default function AdminSidebar({ activeNav }: AdminSidebarProps) {
           </div>
           <div className={styles.profileInfo}>
             <span className={styles.profileName}>{adminData.name}</span>
-            <span 
+            <span
               className={styles.profileStatus}
               style={{
                 color: currentStatus === "Online" ? "#16a34a" : currentStatus === "Maintenance" ? "#f59e0b" : "#ef4444"
