@@ -9,11 +9,13 @@ const STATION_COORDS: Record<string, { lat: number; lng: number }> = {
   metro:   { lat: 6.8252, lng: 79.9554 },
 };
 
-// Fallback for unknown stations — scatter them near the center
-function getCoords(id: string, index: number) {
-  if (STATION_COORDS[id]) return STATION_COORDS[id];
+// Fallback for unknown stations
+function getCoords(station: StationOption, index: number) {
+  if (station.lat && station.lng) {
+    return { lat: station.lat, lng: station.lng };
+  }
   const offset = (index - 1) * 0.02;
-  return { lat: 6.8452 + offset, lng: 79.9654 + offset };
+  return { lat: 6.7181 + offset, lng: 80.7875 + offset };
 }
 
 interface StationMapProps {
@@ -125,8 +127,11 @@ export default function StationMap({ stations, selectedId, onSelect }: StationMa
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
+    const points: [number, number][] = [];
+
     stations.forEach((station, idx) => {
-      const { lat, lng } = getCoords(station.id, idx);
+      const { lat, lng } = getCoords(station, idx);
+      points.push([lat, lng]);
       const isSelected = station.id === selectedId;
       const isAvailable = station.status === "AVAILABLE";
 
@@ -194,10 +199,16 @@ export default function StationMap({ stations, selectedId, onSelect }: StationMa
       }
     });
 
+    if (points.length > 0) {
+      try {
+        map.fitBounds(points, { padding: [50, 50], maxZoom: 14 });
+      } catch (e) {}
+    }
+
     // Fit bounds to all markers
     if (stations.length > 0) {
       const coords = stations.map((s, i) => {
-        const c = getCoords(s.id, i);
+        const c = getCoords(s, i);
         return [c.lat, c.lng] as [number, number];
       });
       map.fitBounds(coords, { padding: [60, 60], maxZoom: 14 });
@@ -240,7 +251,7 @@ export default function StationMap({ stations, selectedId, onSelect }: StationMa
       {/* Station legend strip */}
       <div style={wrapStyles.legend}>
         {stations.map((s, i) => {
-          const { lat, lng } = getCoords(s.id, i);
+          const { lat, lng } = getCoords(s, i);
           const isSelected = s.id === selectedId;
           const isAvailable = s.status === "AVAILABLE";
           return (

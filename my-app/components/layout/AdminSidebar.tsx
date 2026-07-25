@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./AdminSidebar.module.css";
 
@@ -74,6 +74,26 @@ export default function AdminSidebar({ activeNav }: AdminSidebarProps) {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [currentStatus, setCurrentStatus] = useState("Online");
 
+  const [adminData, setAdminData] = useState({
+    name: "Admin",
+    stationId: null as number | null,
+    stationName: "Station",
+  });
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("adminUser");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setAdminData({
+          name: parsed.name || parsed.fullName || "Admin",
+          stationId: parsed.stationId || null,
+          stationName: parsed.stationName || "Station",
+        });
+      }
+    } catch (e) {}
+  }, []);
+
   const NAV_ITEMS = [
     { label: "Overview", icon: OverviewIcon, path: "/admindashboard" },
     { label: "Queue", icon: QueueIcon, path: "/adminqueue" },
@@ -87,7 +107,9 @@ export default function AdminSidebar({ activeNav }: AdminSidebarProps) {
     <aside className={styles.sidebar}>
       <div className={styles.brand}>
         <h1 className={styles.brandName}>MyTurn Admin</h1>
-        <div className={styles.brandSub}>Station #402</div>
+        <div className={styles.brandSub}>
+          {adminData.stationId ? `Station #${adminData.stationId}` : adminData.stationName}
+        </div>
       </div>
 
       <nav className={styles.navSection}>
@@ -160,7 +182,7 @@ export default function AdminSidebar({ activeNav }: AdminSidebarProps) {
             </svg>
           </div>
           <div className={styles.profileInfo}>
-            <span className={styles.profileName}>Station Manager</span>
+            <span className={styles.profileName}>{adminData.name}</span>
             <span 
               className={styles.profileStatus}
               style={{

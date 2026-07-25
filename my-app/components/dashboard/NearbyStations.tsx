@@ -36,14 +36,18 @@ function MapModal({
   stations: Station[];
   onClose: () => void;
 }) {
-  const [selected, setSelected] = useState<Station | null>(null);
+  const [selected, setSelected] = useState<Station | null>(stations[0] || null);
 
   const openMaps = (station: Station) => {
-    const lat = station.lat ?? 6.9271;
-    const lng = station.lng ?? 79.8612;
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+    const lat = station.lat ?? 6.7181;
+    const lng = station.lng ?? 80.7875;
+    const url = `https://www.google.com/maps/dir/?api=1&origin=My+Location&destination=${lat},${lng}&travelmode=driving`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
+
+  const centerLat = selected?.lat ?? stations[0]?.lat ?? 6.7181;
+  const centerLng = selected?.lng ?? stations[0]?.lng ?? 80.7875;
+  const embedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${centerLng - 0.02}%2C${centerLat - 0.02}%2C${centerLng + 0.02}%2C${centerLat + 0.02}&layer=mapnik&marker=${centerLat}%2C${centerLng}`;
 
   return (
     <div
@@ -67,9 +71,9 @@ function MapModal({
             </div>
             <div>
               <p style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", fontWeight: 700, letterSpacing: "0.1em" }}>
-                NEARBY STATIONS
+                REGISTERED FUEL STATIONS
               </p>
-              <p style={{ fontSize: 17, fontWeight: 800, color: "#fff" }}>Station Map View</p>
+              <p style={{ fontSize: 17, fontWeight: 800, color: "#fff" }}>Live Station Map View</p>
             </div>
           </div>
           <button
@@ -81,182 +85,56 @@ function MapModal({
           </button>
         </div>
 
-        {/* Map area */}
-        <div style={mapArea}>
-          {/* Simulated map background */}
-          <div style={mapBg}>
-            {/* Grid lines */}
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={`h${i}`}
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  top: `${(i + 1) * 12.5}%`,
-                  height: 1,
-                  background: "rgba(203,213,225,0.5)",
-                }}
-              />
-            ))}
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={`v${i}`}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  bottom: 0,
-                  left: `${(i + 1) * 12.5}%`,
-                  width: 1,
-                  background: "rgba(203,213,225,0.5)",
-                }}
-              />
-            ))}
+        {/* Map area with live iframe */}
+        <div style={{ ...mapArea, height: 240, position: "relative" }}>
+          <iframe
+            title="All Stations Interactive Map"
+            width="100%"
+            height="100%"
+            frameBorder="0"
+            scrolling="no"
+            src={embedUrl}
+            style={{ border: 0, borderRadius: "12px 12px 0 0" }}
+          />
 
-            {/* Roads */}
-            <div style={{ position: "absolute", left: "20%", right: "20%", top: "48%", height: 4, background: "#e2e8f0", borderRadius: 2 }} />
-            <div style={{ position: "absolute", left: "48%", top: "15%", bottom: "15%", width: 4, background: "#e2e8f0", borderRadius: 2 }} />
-            <div style={{ position: "absolute", left: "10%", right: "40%", top: "70%", height: 3, background: "#f1f5f9", borderRadius: 2, transform: "rotate(-8deg)" }} />
-
-            {/* You are here */}
+          {/* Floating Selected station details overlay */}
+          {selected && (
             <div style={{
               position: "absolute",
-              left: "48%",
-              top: "48%",
-              transform: "translate(-50%, -50%)",
+              bottom: 12,
+              left: 12,
+              right: 12,
+              background: "#ffffff",
+              borderRadius: 12,
+              padding: "12px 16px",
+              boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
               zIndex: 10,
+              border: "1px solid #cbd5e1",
             }}>
-              <div style={{
-                width: 20,
-                height: 20,
-                borderRadius: "50%",
-                background: "#2563eb",
-                border: "3px solid #fff",
-                boxShadow: "0 2px 12px rgba(37,99,235,0.5)",
-                position: "relative",
-              }}>
-                <div style={{
-                  position: "absolute",
-                  inset: -6,
-                  borderRadius: "50%",
-                  background: "rgba(37,99,235,0.2)",
-                  animation: "none",
-                }} />
-              </div>
-              <div style={{
-                position: "absolute",
-                top: 22,
-                left: "50%",
-                transform: "translateX(-50%)",
-                background: "#2563eb",
-                color: "#fff",
-                fontSize: 9,
-                fontWeight: 700,
-                padding: "2px 6px",
-                borderRadius: 4,
-                whiteSpace: "nowrap",
-              }}>
-                You
-              </div>
-            </div>
-
-            {/* Station pins */}
-            {[
-              { id: "ws", left: "28%", top: "32%" },
-              { id: "ew", left: "68%", top: "62%" },
-              { id: "dc", left: "72%", top: "28%" },
-            ].map((pos) => {
-              const station = stations.find((s) => s.id === pos.id);
-              if (!station) return null;
-              const sc = STATUS_COLORS[station.status];
-              const isSelected = selected?.id === pos.id;
-
-              return (
-                <button
-                  key={pos.id}
-                  style={{
-                    position: "absolute",
-                    left: pos.left,
-                    top: pos.top,
-                    transform: "translate(-50%, -100%)",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: 0,
-                    zIndex: isSelected ? 20 : 10,
-                  }}
-                  onClick={() => setSelected(isSelected ? null : station)}
-                  aria-label={`Select ${station.name}`}
-                >
-                  {/* Pin */}
-                  <div style={{
-                    background: isSelected ? "#1d4ed8" : "#fff",
-                    border: `2px solid ${isSelected ? "#1d4ed8" : sc.dot}`,
-                    borderRadius: 10,
-                    padding: "5px 8px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                    boxShadow: isSelected ? "0 4px 16px rgba(29,78,216,0.4)" : "0 2px 10px rgba(0,0,0,0.12)",
-                    transition: "all 0.18s",
-                    whiteSpace: "nowrap",
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                  <span style={{
+                    ...badgeStyle,
+                    background: (STATUS_COLORS[selected.status] || STATUS_COLORS.OPTIMAL).bg,
+                    color: (STATUS_COLORS[selected.status] || STATUS_COLORS.OPTIMAL).text,
                   }}>
-                    <span style={{
-                      width: 7, height: 7, borderRadius: "50%",
-                      background: sc.dot, display: "inline-block", flexShrink: 0,
-                    }} />
-                    <span style={{
-                      fontSize: 10, fontWeight: 700,
-                      color: isSelected ? "#fff" : "#0f172a",
-                    }}>
-                      {station.waitMin}m
-                    </span>
-                  </div>
-                  {/* Needle */}
-                  <div style={{
-                    width: 0, height: 0,
-                    borderLeft: "5px solid transparent",
-                    borderRight: "5px solid transparent",
-                    borderTop: `6px solid ${isSelected ? "#1d4ed8" : "#fff"}`,
-                    margin: "0 auto",
-                  }} />
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Selected station detail */}
-          {selected && (
-            <div style={selectedPanel}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                    <span style={{
-                      ...badgeStyle,
-                      background: STATUS_COLORS[selected.status].bg,
-                      color: STATUS_COLORS[selected.status].text,
-                    }}>
-                      {selected.status}
-                    </span>
-                    <span style={{ fontSize: 11, color: "#64748b" }}>↗ {selected.distance}</span>
-                  </div>
-                  <p style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>{selected.name}</p>
-                  <p style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
-                    Wait: <strong style={{ color: "#0f172a" }}>{selected.waitMin} min</strong> · {selected.queueSize} in queue
-                  </p>
+                    {selected.status}
+                  </span>
+                  <span style={{ fontSize: 11, color: "#64748b" }}>↗ {selected.distance}</span>
                 </div>
-                <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: 16, padding: 0 }}>✕</button>
+                <p style={{ fontSize: 15, fontWeight: 800, color: "#0f172a", margin: 0 }}>{selected.name}</p>
+                <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>
+                  Wait: <strong style={{ color: "#0f172a" }}>{selected.waitMin} min</strong>
+                </p>
               </div>
               <button
                 onClick={() => openMaps(selected)}
                 style={navigateToBtn}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="3 11 22 2 13 21 11 13 3 11" />
-                </svg>
-                Navigate Here
+                Directions ↗
               </button>
             </div>
           )}
@@ -265,38 +143,58 @@ function MapModal({
         {/* Station list below map */}
         <div style={stationListPanel}>
           <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#64748b", marginBottom: 10 }}>
-            ALL NEARBY STATIONS
+            ALL REGISTERED STATIONS ({stations.length})
           </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 180, overflowY: "auto" }}>
             {stations.map((s) => {
-              const sc = STATUS_COLORS[s.status];
+              const sc = STATUS_COLORS[s.status] || STATUS_COLORS.OPTIMAL;
+              const isSel = selected?.id === s.id;
               return (
                 <div
                   key={s.id}
+                  onClick={() => setSelected(s)}
                   style={{
                     display: "flex",
                     alignItems: "center",
                     gap: 12,
-                    padding: "10px 12px",
+                    padding: "10px 14px",
                     borderRadius: 10,
-                    background: selected?.id === s.id ? "#eff6ff" : "#f8fafc",
-                    border: selected?.id === s.id ? "1.5px solid #bfdbfe" : "1px solid #f1f5f9",
+                    background: isSel ? "#eff6ff" : "#f8fafc",
+                    border: isSel ? "1.5px solid #2563eb" : "1px solid #e2e8f0",
                     cursor: "pointer",
                     transition: "all 0.15s",
                   }}
-                  onClick={() => setSelected(s)}
                 >
-                  <div style={{ width: 36, height: 36, borderRadius: 9, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>
-                    {s.icon}
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 8,
+                    background: sc.bg, color: sc.text,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontWeight: 800, fontSize: 13, flexShrink: 0,
+                  }}>
+                    ⛽
                   </div>
                   <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{s.name}</p>
-                    <p style={{ fontSize: 11, color: "#64748b", marginTop: 1 }}>↗ {s.distance}</p>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>{s.name}</div>
+                    <div style={{ fontSize: 12, color: "#64748b" }}>Wait: {s.waitMin} mins · {s.distance}</div>
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
-                    <span style={{ ...badgeStyle, background: sc.bg, color: sc.text }}>{s.status}</span>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: "#0f172a" }}>~{s.waitMin} min</span>
-                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openMaps(s);
+                    }}
+                    style={{
+                      background: "#1d4ed8",
+                      color: "#fff",
+                      border: "none",
+                      padding: "6px 12px",
+                      borderRadius: 6,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Directions ↗
+                  </button>
                 </div>
               );
             })}

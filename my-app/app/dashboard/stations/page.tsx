@@ -1,172 +1,225 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import DashboardBottomNav from "@/components/dashboard/DashboardBottomNav";
+import apiClient from "@/services/apiClient";
+import SmartPick from "@/components/dashboard/SmartPick";
 
-interface Station {
-  id: string;
-  name: string;
-  address: string;
-  status: "LIVE NOW" | "OPENING SOON" | "CLOSED";
-  statusColor: string;
-  fuel: { type: string; status: "AVAILABLE" | "LIMITED" | "BUSY" }[];
-  waitTime: number;
-  queueCount: number;
-  flowVelocity: number;
-  availableSlots: number;
-  distance: string;
+interface BackendStation {
+  id: number;
+  stationName: string;
+  address?: string;
+  city?: string;
+  district?: string;
+  latitude?: number;
+  longitude?: number;
+  avgServiceTimeMinutes?: number;
+  status?: string;
+  openingTime?: string;
+  closingTime?: string;
 }
 
-const STATIONS: Station[] = [
-  {
-    id: "vanguard-east",
-    name: "Vanguard Station East",
-    address: "42nd Digital Avenue, Sector 7",
-    status: "LIVE NOW",
-    statusColor: "#22c55e",
-    fuel: [
-      { type: "95 Octane", status: "AVAILABLE" },
-      { type: "Diesel Pro", status: "LIMITED" },
-    ],
-    waitTime: 12,
-    queueCount: 8,
-    flowVelocity: 68,
-    availableSlots: 2,
-    distance: "2.3 km",
-  },
-  {
-    id: "nexus-central",
-    name: "Nexus Central Hub",
-    address: "156 Commerce Plaza, Downtown",
-    status: "LIVE NOW",
-    statusColor: "#22c55e",
-    fuel: [
-      { type: "Premium Petrol", status: "AVAILABLE" },
-      { type: "Ultra Diesel", status: "AVAILABLE" },
-    ],
-    waitTime: 18,
-    queueCount: 12,
-    flowVelocity: 52,
-    availableSlots: 4,
-    distance: "3.1 km",
-  },
-  {
-    id: "horizon-west",
-    name: "Horizon West Terminal",
-    address: "789 Industrial Park, West Zone",
-    status: "LIVE NOW",
-    statusColor: "#22c55e",
-    fuel: [
-      { type: "95 Octane", status: "AVAILABLE" },
-      { type: "Diesel Pro", status: "BUSY" },
-    ],
-    waitTime: 22,
-    queueCount: 15,
-    flowVelocity: 35,
-    availableSlots: 1,
-    distance: "4.5 km",
-  },
-];
+interface Timeslot {
+  id: number;
+  startTime: string;
+  endTime: string;
+  maxCapacity: number;
+  bookedCount: number;
+  status: "OPEN" | "FULL" | "BLOCKED";
+}
 
 export default function StationsPage() {
-  const [selectedStationId, setSelectedStationId] = useState(STATIONS[0].id);
+  const [stations, setStations] = useState<BackendStation[]>([]);
+  const [selectedStationId, setSelectedStationId] = useState<number | null>(null);
+  const [timeslots, setTimeslots] = useState<Timeslot[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [fuelStatus, setFuelStatus] = useState<{ petrol: string; diesel: string }>({
+    petrol: "AVAILABLE",
+    diesel: "LIMITED",
+  });
+  const [bookingOpen, setBookingOpen] = useState(false);
 
-  const selectedStation = STATIONS.find((s) => s.id === selectedStationId) || STATIONS[0];
+  useEffect(() => {
+    fetchRealStations();
+
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserCoords({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          });
+        },
+        () => setUserCoords(null),
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+  }, []);
+
+  const fetchRealStations = async () => {
+    setLoading(true);
+    try {
+      const res = await apiClient.get<BackendStation[]>("/stations");
+      if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        setStations(res.data);
+        const first = res.data[0];
+        setSelectedStationId(first.id);
+        fetchTimeslotsForStation(first.id);
+        loadFuelStatusForStation(first.id);
+      }
+    } catch (e) {
+      console.warn("Failed to fetch real stations:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTimeslotsForStation = async (stId: number) => {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      const res = await apiClient.get<Timeslot[]>(`/timeslots?stationId=${stId}&date=${today}`);
+      if (res.success && Array.isArray(res.data)) {
+        setTimeslots(res.data);
+      }
+    } catch (e) {
+      console.warn("Failed to fetch timeslots:", e);
+    }
+  };
+
+  const loadFuelStatusForStation = (stId: number) => {
+    try {
+      const stored = localStorage.getItem(`stationFuelStatus_${stId}`) || localStorage.getItem("stationFuelStatus_latest");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setFuelStatus({
+          petrol: parsed.petrol || "AVAILABLE",
+          diesel: parsed.diesel || "LIMITED",
+        });
+      }
+    } catch (e) {}
+  };
+
+  const handleSelectStation = (st: BackendStation) => {
+    setSelectedStationId(st.id);
+    fetchTimeslotsForStation(st.id);
+    loadFuelStatusForStation(st.id);
+  };
+
+  const selectedStation = stations.find((s) => s.id === selectedStationId) || stations[0];
+
+  const getRealDistance = (stLat?: number, stLng?: number): string => {
+    if (!stLat || !stLng) return "1.2 km";
+    if (!userCoords) return "Locating…";
+    const R = 6371;
+    const dLat = ((stLat - userCoords.lat) * Math.PI) / 180;
+    const dLon = ((stLng - userCoords.lng) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((userCoords.lat * Math.PI) / 180) *
+        Math.cos((stLat * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const dist = R * c;
+    return dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`;
+  };
+
+  const latNum = selectedStation?.latitude || 6.7181;
+  const lonNum = selectedStation?.longitude || 80.7875;
+  const mapEmbedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lonNum - 0.015}%2C${latNum - 0.015}%2C${lonNum + 0.015}%2C${latNum + 0.015}&layer=mapnik&marker=${latNum}%2C${lonNum}`;
+  const gmapsUrl = `https://www.google.com/maps/dir/?api=1&origin=My+Location&destination=${latNum},${lonNum}&travelmode=driving`;
+
+  const fullAddr = [selectedStation?.address, selectedStation?.city, selectedStation?.district].filter(Boolean).join(", ") || "Sri Lanka";
 
   return (
     <div style={styles.shell}>
       <DashboardTopbar />
 
       <main style={styles.main}>
-        {/* Map view — station-hero.jpg background */}
+        {/* Map view hero iframe */}
         <div style={styles.mapContainer}>
           <div style={styles.mapPlaceholder}>
-            {/* Hero photo */}
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                right: 0,
-                bottom: 0,
-                left: 0,
-                backgroundImage: "url('/images/station-hero.jpg')",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-            />
-            {/* Dark overlay so badges stay readable */}
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                right: 0,
-                bottom: 0,
-                left: 0,
-                background:
-                  "linear-gradient(to bottom, rgba(10,20,40,0.45) 0%, rgba(10,20,40,0.25) 60%, rgba(10,20,40,0.55) 100%)",
-              }}
+            <iframe
+              title="Station Map View"
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              scrolling="no"
+              src={mapEmbedUrl}
+              style={{ border: 0 }}
             />
 
             {/* Status badge */}
             <div style={styles.mapBadge}>
-              <span style={{ ...styles.statusDot, background: selectedStation.statusColor }} />
-              <span style={styles.badgeText}>{selectedStation.status}</span>
+              <span style={{ ...styles.statusDot, background: "#22c55e" }} />
+              <span style={styles.badgeText}>LIVE NOW</span>
             </div>
 
             {/* Station name overlay */}
             <div style={styles.mapStationLabel}>
-              <p style={styles.mapStationName}>{selectedStation.name}</p>
-              <p style={styles.mapStationAddr}>📍 {selectedStation.address}</p>
+              <p style={styles.mapStationName}>{selectedStation?.stationName || "Registered Fuel Station"}</p>
+              <p style={styles.mapStationAddr}>📍 {fullAddr}</p>
             </div>
 
-            {/* Zoom button */}
-            <button style={styles.zoomBtn} aria-label="Zoom map">◎</button>
+            {/* Zoom / Navigation button */}
+            <button
+              style={styles.zoomBtn}
+              onClick={() => window.open(gmapsUrl, "_blank")}
+              aria-label="Open in Google Maps"
+              title="Open turn-by-turn navigation"
+            >
+              ↗
+            </button>
           </div>
         </div>
 
-
         {/* Station info */}
         <div style={styles.infoSection}>
-          <h2 style={styles.stationName}>{selectedStation.name}</h2>
+          <h2 style={styles.stationName}>{selectedStation?.stationName || "Registered Fuel Station"}</h2>
           <p style={styles.stationAddress}>
             <span style={styles.pinIcon}>📍</span>
-            {selectedStation.address}
+            {fullAddr}
           </p>
 
           {/* Metrics row */}
           <div style={styles.metricsRow}>
             <div style={styles.metric}>
               <p style={styles.metricLabel}>AVAILABILITY</p>
-              {selectedStation.fuel.map((f) => (
-                <p key={f.type} style={styles.fuelItem}>
-                  {f.type}
-                  <span
-                    style={{
-                      ...styles.fuelBadge,
-                      background:
-                        f.status === "AVAILABLE"
-                          ? "#86efac"
-                          : f.status === "LIMITED"
-                            ? "#fcd34d"
-                            : "#fed7aa",
-                    }}
-                  >
-                    {f.status}
-                  </span>
-                </p>
-              ))}
+              <p style={styles.fuelItem}>
+                95 Octane
+                <span
+                  style={{
+                    ...styles.fuelBadge,
+                    background: fuelStatus.petrol === "AVAILABLE" ? "#86efac" : fuelStatus.petrol === "LIMITED" ? "#fcd34d" : "#fed7aa",
+                  }}
+                >
+                  {fuelStatus.petrol}
+                </span>
+              </p>
+              <p style={styles.fuelItem}>
+                Diesel Pro
+                <span
+                  style={{
+                    ...styles.fuelBadge,
+                    background: fuelStatus.diesel === "AVAILABLE" ? "#86efac" : fuelStatus.diesel === "LIMITED" ? "#fcd34d" : "#fed7aa",
+                  }}
+                >
+                  {fuelStatus.diesel}
+                </span>
+              </p>
             </div>
 
             <div style={styles.waitCard}>
               <p style={styles.waitLabel}>WAIT TIME</p>
-              <p style={styles.waitTime}>{selectedStation.waitTime}</p>
+              <p style={styles.waitTime}>{selectedStation?.avgServiceTimeMinutes || 8}</p>
               <p style={styles.waitSub}>MINUTES</p>
             </div>
 
             <div style={styles.metric}>
               <p style={styles.metricLabel}>QUEUE</p>
-              <p style={styles.queueValue}>{selectedStation.queueCount}</p>
+              <p style={styles.queueValue}>6</p>
               <p style={styles.queueSub}>VEHICLES</p>
             </div>
           </div>
@@ -181,7 +234,7 @@ export default function StationsPage() {
               <div
                 style={{
                   ...styles.flowBarFill,
-                  width: `${selectedStation.flowVelocity}%`,
+                  width: `68%`,
                 }}
               />
             </div>
@@ -193,25 +246,64 @@ export default function StationsPage() {
 
           {/* Available slots */}
           <div style={styles.slotsSection}>
-            <h3 style={styles.slotsTitle}>Available Slots</h3>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <h3 style={styles.slotsTitle}>Available Slots</h3>
+              <button
+                onClick={() => setBookingOpen(true)}
+                style={{
+                  background: "#2563eb",
+                  color: "#fff",
+                  border: "none",
+                  padding: "6px 14px",
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                + Book Slot
+              </button>
+            </div>
+
             <div style={styles.slotsList}>
-              {[
-                { time: "14:15", status: "Selected", isFull: false },
-                { time: "14:45", status: "3 Left", isFull: false },
-                { time: "15:15", status: "Full", isFull: true },
-              ].map((slot) => (
-                <button
-                  key={slot.time}
-                  style={{
-                    ...styles.slotCard,
-                    ...(slot.status === "Selected" ? styles.slotCardSelected : {}),
-                    ...(slot.isFull ? styles.slotCardFull : {}),
-                  }}
-                >
-                  <span style={styles.slotTime}>{slot.time}</span>
-                  <span style={styles.slotStatus}>{slot.status}</span>
-                </button>
-              ))}
+              {timeslots.length > 0 ? (
+                timeslots.slice(0, 4).map((slot, idx) => {
+                  const isFull = slot.status === "FULL" || slot.bookedCount >= slot.maxCapacity;
+                  const left = Math.max(0, slot.maxCapacity - slot.bookedCount);
+                  return (
+                    <button
+                      key={slot.id}
+                      onClick={() => !isFull && setBookingOpen(true)}
+                      style={{
+                        ...styles.slotCard,
+                        ...(idx === 0 ? styles.slotCardSelected : {}),
+                        ...(isFull ? styles.slotCardFull : {}),
+                      }}
+                    >
+                      <span style={styles.slotTime}>{slot.startTime.substring(0, 5)} - {slot.endTime.substring(0, 5)}</span>
+                      <span style={styles.slotStatus}>{isFull ? "Full" : `${left} Left`}</span>
+                    </button>
+                  );
+                })
+              ) : (
+                [
+                  { time: "08:00 - 08:10", status: "Selected" },
+                  { time: "08:10 - 08:20", status: "3 Left" },
+                  { time: "08:20 - 08:30", status: "5 Left" },
+                ].map((slot, idx) => (
+                  <button
+                    key={slot.time}
+                    onClick={() => setBookingOpen(true)}
+                    style={{
+                      ...styles.slotCard,
+                      ...(idx === 0 ? styles.slotCardSelected : {}),
+                    }}
+                  >
+                    <span style={styles.slotTime}>{slot.time}</span>
+                    <span style={styles.slotStatus}>{slot.status}</span>
+                  </button>
+                ))
+              )}
             </div>
           </div>
 
@@ -232,39 +324,52 @@ export default function StationsPage() {
         <div style={styles.listSection}>
           <h3 style={styles.listTitle}>Other Nearby Stations</h3>
           <div style={styles.stationsList}>
-            {STATIONS.map((station) => (
-              <button
-                key={station.id}
-                onClick={() => setSelectedStationId(station.id)}
-                style={{
-                  ...styles.stationCard,
-                  ...(selectedStationId === station.id ? styles.stationCardActive : {}),
-                }}
-              >
-                <div style={styles.cardTop}>
-                  <div>
-                    <h4 style={styles.cardName}>{station.name}</h4>
-                    <p style={styles.cardDistance}>{station.distance}</p>
+            {stations.length > 0 ? (
+              stations.map((st) => (
+                <button
+                  key={st.id}
+                  onClick={() => handleSelectStation(st)}
+                  style={{
+                    ...styles.stationCard,
+                    ...(selectedStationId === st.id ? styles.stationCardActive : {}),
+                  }}
+                >
+                  <div style={styles.cardTop}>
+                    <div>
+                      <h4 style={styles.cardName}>{st.stationName}</h4>
+                      <p style={styles.cardDistance}>{getRealDistance(st.latitude, st.longitude)}</p>
+                    </div>
+                    <div style={styles.cardMeta}>
+                      <p style={styles.cardWait}>{st.avgServiceTimeMinutes || 8} min</p>
+                      <p style={styles.cardQueue}>6 vehicles</p>
+                    </div>
                   </div>
-                  <div style={styles.cardMeta}>
-                    <p style={styles.cardWait}>{station.waitTime} min</p>
-                    <p style={styles.cardQueue}>{station.queueCount} vehicles</p>
+                  <div style={styles.cardFuel}>
+                    <span style={styles.cardFuelTag}>Petrol 95</span>
+                    <span style={styles.cardFuelTag}>Diesel</span>
                   </div>
-                </div>
-                <div style={styles.cardFuel}>
-                  {station.fuel.map((f) => (
-                    <span key={f.type} style={styles.cardFuelTag}>
-                      {f.type.split(" ")[0]}
-                    </span>
-                  ))}
-                </div>
-              </button>
-            ))}
+                </button>
+              ))
+            ) : (
+              <div style={{ padding: "20px 0", color: "#64748b", fontSize: 13 }}>Loading registered stations…</div>
+            )}
           </div>
         </div>
       </main>
 
       <DashboardBottomNav active="stations" />
+
+      {/* Smart Booking Modal */}
+      {bookingOpen && selectedStation && (
+        <SmartPick
+          stationId={selectedStation.id}
+          stationName={selectedStation.stationName}
+          description={`Registered station in ${selectedStation.city || selectedStation.district || "Sri Lanka"}`}
+          waitTimeLabel="Wait Time"
+          waitTimeValue={`${selectedStation.avgServiceTimeMinutes || 8} mins`}
+          distance={getRealDistance(selectedStation.latitude, selectedStation.longitude)}
+        />
+      )}
     </div>
   );
 }
@@ -285,18 +390,19 @@ const styles: Record<string, React.CSSProperties> = {
   },
   mapContainer: {
     width: "100%",
-    height: 260,
-    position: "sticky",
-    top: 0,
-    zIndex: 10,
-    boxShadow: "0 4px 12px rgba(15, 23, 42, 0.1)",
+    height: 320,
+    position: "relative",
+    zIndex: 5,
+    boxShadow: "0 4px 16px rgba(15, 23, 42, 0.12)",
+    borderRadius: "0 0 16px 16px",
+    overflow: "hidden",
   },
   mapPlaceholder: {
     width: "100%",
     height: "100%",
     position: "relative",
     overflow: "hidden",
-    background: "#1a3a47",
+    background: "#0f172a",
   },
   mapStationLabel: {
     position: "absolute",

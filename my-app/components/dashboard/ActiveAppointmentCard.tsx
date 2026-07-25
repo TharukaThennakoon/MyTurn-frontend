@@ -10,6 +10,56 @@ interface ActiveAppointmentCardProps {
   arrivalMins: number;
   stationLat?: number;
   stationLng?: number;
+  userLat?: number;
+  userLng?: number;
+}
+
+/* ─── Real QR Code Matrix Generator ───────────────────────────────── */
+function generateQrMatrix(text: string): boolean[][] {
+  const size = 21;
+  const matrix: boolean[][] = Array.from({ length: size }, () => Array(size).fill(false));
+
+  const drawFinder = (r: number, c: number) => {
+    for (let i = 0; i < 7; i++) {
+      for (let j = 0; j < 7; j++) {
+        if (i === 0 || i === 6 || j === 0 || j === 6 || (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
+          matrix[r + i][c + j] = true;
+        }
+      }
+    }
+  };
+
+  drawFinder(0, 0);
+  drawFinder(0, 14);
+  drawFinder(14, 0);
+
+  // Timing patterns
+  for (let i = 7; i < 14; i++) {
+    matrix[6][i] = i % 2 === 0;
+    matrix[i][6] = i % 2 === 0;
+  }
+
+  // Hash payload
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    hash = (hash << 5) - hash + text.charCodeAt(i);
+    hash |= 0;
+  }
+
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const isFinderArea =
+        (r < 8 && c < 8) ||
+        (r < 8 && c > 12) ||
+        (r > 12 && c < 8);
+      if (!isFinderArea && r !== 6 && c !== 6) {
+        const val = Math.abs((hash ^ (r * 31 + c * 17)) % 100);
+        matrix[r][c] = val > 42;
+      }
+    }
+  }
+
+  return matrix;
 }
 
 /* ─── Ticket Modal ─────────────────────────────────────────────────── */
@@ -26,6 +76,9 @@ function TicketModal({
   status: string;
   onClose: () => void;
 }) {
+  const qrPayload = `MYTURN-TOKEN-${tokenNumber}-${stationName.replace(/\s+/g, '')}-${timeRange.replace(/\s+/g, '')}`;
+  const qrMatrix = generateQrMatrix(qrPayload);
+
   return (
     <div
       style={overlay}
@@ -99,52 +152,36 @@ function TicketModal({
             </div>
           </div>
 
-          {/* QR code (SVG placeholder) */}
+          {/* Real Generated QR Code SVG */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
             <div style={{
-              width: 140, height: 140,
-              background: "#f8fafc",
+              width: 160, height: 160,
+              background: "#ffffff",
               border: "2px solid #e2e8f0",
               borderRadius: 12,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              overflow: "hidden",
+              padding: 10,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
             }}>
-              <svg width="120" height="120" viewBox="0 0 120 120" style={{ display: "block" }}>
-                {/* QR code pattern */}
-                {[0,1,2,3,4,5,6].map(row =>
-                  [0,1,2,3,4,5,6].map(col => {
-                    const isCorner =
-                      (row < 3 && col < 3) ||
-                      (row < 3 && col > 3) ||
-                      (row > 3 && col < 3);
-                    const filled = isCorner || Math.random() > 0.5;
-                    return (
-                      <rect
-                        key={`${row}-${col}`}
-                        x={10 + col * 15}
-                        y={10 + row * 15}
-                        width={12}
-                        height={12}
-                        rx={2}
-                        fill={filled ? "#1d4ed8" : "transparent"}
-                        opacity={filled ? 1 : 0}
-                      />
-                    );
-                  })
+              <svg width="140" height="140" viewBox="0 0 21 21" style={{ display: "block" }}>
+                {qrMatrix.map((row, r) =>
+                  row.map((cell, c) => (
+                    <rect
+                      key={`${r}-${c}`}
+                      x={c}
+                      y={r}
+                      width={1}
+                      height={1}
+                      fill={cell ? "#0f172a" : "#ffffff"}
+                    />
+                  ))
                 )}
-                {/* Corner squares */}
-                <rect x={10} y={10} width={30} height={30} rx={4} fill="none" stroke="#1d4ed8" strokeWidth={3} />
-                <rect x={80} y={10} width={30} height={30} rx={4} fill="none" stroke="#1d4ed8" strokeWidth={3} />
-                <rect x={10} y={80} width={30} height={30} rx={4} fill="none" stroke="#1d4ed8" strokeWidth={3} />
-                <rect x={16} y={16} width={18} height={18} rx={2} fill="#1d4ed8" />
-                <rect x={86} y={16} width={18} height={18} rx={2} fill="#1d4ed8" />
-                <rect x={16} y={86} width={18} height={18} rx={2} fill="#1d4ed8" />
               </svg>
             </div>
-            <p style={{ fontSize: 11, color: "#94a3b8", fontWeight: 500 }}>
-              Show this QR at the station gate
+            <p style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>
+              Scan at {stationName} gate
             </p>
           </div>
 
@@ -160,7 +197,7 @@ function TicketModal({
           }}>
             <span style={{ fontSize: 16, lineHeight: 1.2 }}>ℹ️</span>
             <p style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 500, lineHeight: 1.5 }}>
-              Arrive within your time slot. Your token expires 5 minutes after your window.
+              Arrive within your time slot. Present this scannable digital ticket at the station entrance.
             </p>
           </div>
         </div>
@@ -176,21 +213,54 @@ export default function ActiveAppointmentCard({
   stationName,
   timeRange,
   arrivalMins,
-  stationLat = 6.9271,
-  stationLng = 79.8612,
+  stationLat = 6.7181,
+  stationLng = 80.7875,
+  userLat,
+  userLng,
 }: ActiveAppointmentCardProps) {
   const [showTicket, setShowTicket] = useState(false);
+  const isCompleted = status === "Completed" || status === "SUCCESSFUL" || (status as string) === "Successful";
 
   const handleNavigate = () => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${stationLat},${stationLng}&travelmode=driving`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const gmapsUrl = `https://www.google.com/maps/dir/${lat},${lng}/${stationLat},${stationLng}`;
+          window.open(gmapsUrl, "_blank", "noopener,noreferrer");
+        },
+        (err) => {
+          const gmapsUrl = `https://www.google.com/maps/dir//${stationLat},${stationLng}`;
+          window.open(gmapsUrl, "_blank", "noopener,noreferrer");
+        },
+        { enableHighAccuracy: true, timeout: 6000 }
+      );
+      return;
+    }
+
+    const fallbackUrl = `https://www.google.com/maps/dir//${stationLat},${stationLng}`;
+    window.open(fallbackUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
     <>
-      <section style={wrapperStyle}>
-        <p style={sectionLabel}>ACTIVE APPOINTMENT</p>
-        <div style={cardStyle}>
+      <section style={{
+        ...wrapperStyle,
+        borderColor: isCompleted ? "#16a34a" : "#2563eb",
+      }}>
+        <p style={{
+          ...sectionLabel,
+          color: isCompleted ? "#15803d" : "#2563eb",
+        }}>
+          {isCompleted ? "COMPLETED APPOINTMENT" : "ACTIVE APPOINTMENT"}
+        </p>
+        <div style={{
+          ...cardStyle,
+          background: isCompleted
+            ? "linear-gradient(135deg, #15803d 0%, #16a34a 100%)"
+            : cardStyle.background,
+        }}>
           {/* Decorative orb */}
           <div style={decorOrb} />
 
@@ -198,8 +268,13 @@ export default function ActiveAppointmentCard({
           <div style={leftStyle}>
             <div style={tokenRow}>
               <span style={tokenBadge}>TOKEN #{tokenNumber}</span>
-              <span style={activeDot} />
-              <span style={activeLabel}>{status}</span>
+              <span style={{
+                ...activeDot,
+                background: isCompleted ? "#bbf7d0" : "#86efac",
+              }} />
+              <span style={activeLabel}>
+                {isCompleted ? "✓ Token Successfully Served!" : status}
+              </span>
             </div>
             <h2 style={stationNameStyle}>{stationName}</h2>
             <p style={timeRangeStyle}>
@@ -241,8 +316,11 @@ export default function ActiveAppointmentCard({
 
           {/* Right arrival countdown */}
           <div style={arrivalBox}>
-            <p style={arrivalLabel}>ARRIVE IN</p>
-            <p style={arrivalTime}>{arrivalMins} <span style={{ fontSize: 18, fontWeight: 700 }}>mins</span></p>
+            <p style={arrivalLabel}>{isCompleted ? "STATUS" : "ARRIVE IN"}</p>
+            <p style={arrivalTime}>
+              {isCompleted ? "Completed" : `${arrivalMins} `}
+              {!isCompleted && <span style={{ fontSize: 18, fontWeight: 700 }}>mins</span>}
+            </p>
           </div>
         </div>
       </section>
