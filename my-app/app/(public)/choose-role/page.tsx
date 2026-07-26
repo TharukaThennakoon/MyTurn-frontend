@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Car, Building2, Lock, CheckCircle2 } from "lucide-react";
 
 type Role = "citizen" | "admin";
 
@@ -96,7 +97,9 @@ function RoleCard({ role }: RoleCardProps) {
               backdropFilter: "blur(6px)",
             }}
           >
-            {isCitizen ? "🚗" : "⊞"}
+            {isCitizen
+              ? <Car size={22} color="rgba(255,255,255,0.9)" />
+              : <Building2 size={22} color="rgba(255,255,255,0.9)" />}
           </div>
           <div>
             <p
@@ -237,8 +240,8 @@ function LoginForm({
         Sign In →
       </Link>
 
-      <p style={{ textAlign: "center", fontSize: 12, color: "#cbd5e1", margin: 0 }}>
-        🔒 Secure login. Your data is protected.
+      <p style={{ textAlign: "center", fontSize: 12, color: "#cbd5e1", margin: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
+        <Lock size={12} color="#94a3b8" /> Secure login. Your data is protected.
       </p>
     </div>
   );
@@ -285,7 +288,9 @@ function RegisterPrompt({
               fontWeight: 500,
             }}
           >
-            <span style={{ color: accent, fontWeight: 800, fontSize: 14 }}>✓</span>
+            <span style={{ color: accent, fontWeight: 800, fontSize: 14, display: "flex", alignItems: "center" }}>
+              <CheckCircle2 size={15} color={accent} />
+            </span>
             {f}
           </div>
         ))}

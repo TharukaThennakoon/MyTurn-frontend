@@ -6,7 +6,7 @@ import type { StationOption } from "./BookingSelectStation";
 // Station coordinates near Colombo, Sri Lanka (matching the OSM link: 6.8452/79.9654)
 const STATION_COORDS: Record<string, { lat: number; lng: number }> = {
   central: { lat: 6.8652, lng: 79.9754 },
-  metro:   { lat: 6.8252, lng: 79.9554 },
+  metro: { lat: 6.8252, lng: 79.9554 },
 };
 
 // Fallback for unknown stations
@@ -139,8 +139,8 @@ export default function StationMap({ stations, selectedId, onSelect }: StationMa
       const pinColor = isSelected
         ? "#2563eb"
         : isAvailable
-        ? "#15803d"
-        : "#a16207";
+          ? "#15803d"
+          : "#a16207";
 
       const pinHtml = `
         <div style="
@@ -202,7 +202,7 @@ export default function StationMap({ stations, selectedId, onSelect }: StationMa
     if (points.length > 0) {
       try {
         map.fitBounds(points, { padding: [50, 50], maxZoom: 14 });
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // Fit bounds to all markers
@@ -275,8 +275,8 @@ export default function StationMap({ stations, selectedId, onSelect }: StationMa
                   background: isSelected
                     ? "#2563eb"
                     : isAvailable
-                    ? "#15803d"
-                    : "#a16207",
+                      ? "#15803d"
+                      : "#a16207",
                 }}
               />
               <span style={wrapStyles.legendName}>{s.name}</span>

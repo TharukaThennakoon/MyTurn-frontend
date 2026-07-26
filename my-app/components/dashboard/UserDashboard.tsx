@@ -7,6 +7,7 @@ import NearbyStations from "@/components/dashboard/NearbyStations";
 import QuickInsights from "@/components/dashboard/QuickInsights";
 import DashboardBottomNav from "@/components/dashboard/DashboardBottomNav";
 import apiClient from "@/services/apiClient";
+import { CheckCircle2, Fuel, Clock, MapPin } from "lucide-react";
 
 interface BackendStation {
   id: number;
@@ -73,7 +74,7 @@ export default function UserDashboard() {
         navigator.geolocation.clearWatch(watchId);
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadActiveBookingFromStorage = () => {
@@ -201,7 +202,7 @@ export default function UserDashboard() {
       waitMin: s.avgServiceTimeMinutes || (idx * 5 + 8),
       queueSize: 6,
       queueLabel: s.status === "OPEN" ? "LOW" : "MED",
-      icon: "▦",
+      icon: <Fuel size={20} color="#15803d" />,
       iconBg: s.status === "OPEN" ? "#d1fae5" : "#fef3c7",
       lat: s.latitude,
       lng: s.longitude,
@@ -215,16 +216,16 @@ export default function UserDashboard() {
         waitMin: 8,
         queueSize: 6,
         queueLabel: "LOW",
-        icon: "▦",
+        icon: <Fuel size={20} color="#15803d" />,
         iconBg: "#d1fae5",
       },
     ];
 
   const QUICK_INSIGHTS = [
-    { icon: "▦", label: "AVAILABILITY", value: "95%" },
-    { icon: "⊙", label: "STATIONS", value: String(Math.max(1, stations.length)) },
-    { icon: "↗", label: "PEAK HOUR", value: "6:00 PM" },
-    { icon: "▣", label: "REGIONS", value: "Sri Lanka" },
+    { icon: <CheckCircle2 size={22} color="#2563eb" />, label: "AVAILABILITY", value: "95%" },
+    { icon: <Fuel size={22} color="#2563eb" />, label: "STATIONS", value: String(Math.max(1, stations.length)) },
+    { icon: <Clock size={22} color="#2563eb" />, label: "PEAK HOUR", value: "6:00 PM" },
+    { icon: <MapPin size={22} color="#2563eb" />, label: "REGIONS", value: "Sri Lanka" },
   ];
 
   return (
@@ -268,7 +269,7 @@ export default function UserDashboard() {
         ) : (
           <div style={styles.noActiveCard}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={styles.noActiveIcon}>⛽</div>
+              <div style={styles.noActiveIcon}><Fuel size={22} color="#2563eb" /></div>
               <div>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", margin: 0 }}>
                   No Active Booking Currently

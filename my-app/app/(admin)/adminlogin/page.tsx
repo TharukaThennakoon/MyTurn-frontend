@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import styles from "./page.module.css";
 import stationAdminService from "@/services/stationAdminService";
 
@@ -94,36 +95,26 @@ export default function AdminLoginPage() {
             />
 
             <label htmlFor="admin-password">Password</label>
-            <div style={{ position: "relative" }}>
+            <div className={styles.passwordWrap}>
               <input
                 id="admin-password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{ paddingRight: 44 }}
                 required
               />
               <button
                 type="button"
+                className={styles.eyeBtn}
                 onClick={() => setShowPassword((v) => !v)}
-                style={{
-                  position: "absolute", right: 12, top: "50%",
-                  transform: "translateY(-50%)", background: "none",
-                  border: "none", cursor: "pointer", fontSize: 16,
-                  color: "#64748b"
-                }}
                 aria-label="Toggle password visibility"
               >
-                {showPassword ? "🙈" : "👁️"}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              style={{ opacity: loading ? 0.7 : 1, cursor: loading ? "not-allowed" : "pointer" }}
-            >
+            <button type="submit" disabled={loading} style={{ opacity: loading ? 0.7 : 1, cursor: loading ? "not-allowed" : "pointer" }}>
               {loading ? "Signing in…" : "Access Dashboard"}
             </button>
           </form>

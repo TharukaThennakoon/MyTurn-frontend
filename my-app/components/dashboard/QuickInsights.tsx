@@ -3,7 +3,7 @@
 import React from "react";
 
 interface InsightItem {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   value: string;
 }
@@ -19,7 +19,7 @@ export default function QuickInsights({ insights }: QuickInsightsProps) {
       <div style={styles.grid}>
         {insights.map((item, i) => (
           <div key={i} style={styles.card}>
-            <span style={styles.icon}>{item.icon}</span>
+            <div style={styles.iconWrap}>{item.icon}</div>
             <p style={styles.label}>{item.label}</p>
             <p style={styles.value}>{item.value}</p>
           </div>
@@ -60,9 +60,16 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: "center",
     transition: "box-shadow 0.18s, transform 0.18s",
   },
-  icon: {
-    fontSize: 28,
+  iconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    background: "#eff6ff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 2,
+    flexShrink: 0,
   },
   label: {
     fontSize: 11,

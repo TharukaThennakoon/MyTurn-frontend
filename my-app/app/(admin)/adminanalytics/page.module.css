@@ -36,7 +36,10 @@
 }
 
 /* Base Card Styles */
-.chartCard, .chartCardLarge, .statCard, .notificationCard {
+.chartCard,
+.chartCardLarge,
+.statCard,
+.notificationCard {
   background: #ffffff;
   border-radius: 16px;
   padding: 24px;
@@ -283,7 +286,7 @@
 .toggleActive {
   background: #ffffff;
   color: #0f172a;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .lineChartContainer {
@@ -449,14 +452,28 @@
 }
 
 @media (max-width: 1024px) {
-  .topRow, .middleRow, .notifBody {
+
+  .topRow,
+  .middleRow,
+  .notifBody {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  .container { flex-direction: column; }
-  .content { padding: 16px; }
-  .recipientButtons { flex-direction: column; }
-  .quickAlerts { flex-wrap: wrap; }
+  .container {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 16px;
+  }
+
+  .recipientButtons {
+    flex-direction: column;
+  }
+
+  .quickAlerts {
+    flex-wrap: wrap;
+  }
 }

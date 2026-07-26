@@ -25,10 +25,10 @@ interface RealTimeSlot {
 
 // Fuel IDs MUST match backend FuelType enum: PETROL92, PETROL95, DIESEL, SUPER_DIESEL
 const REAL_FUEL_TYPES = [
-  { id: "PETROL95",    label: "Petrol (95 Octane)",  icon: "⛽", color: "#2563eb" },
-  { id: "DIESEL",      label: "Diesel (Auto Grade)",  icon: "🛢️", color: "#7c3aed" },
-  { id: "PETROL92",    label: "Petrol (92 Octane)",   icon: "⛽", color: "#0284c7" },
-  { id: "SUPER_DIESEL",label: "Super Diesel",          icon: "🛢️", color: "#9333ea" },
+  { id: "PETROL95", label: "Petrol (95 Octane)", icon: "⛽", color: "#2563eb" },
+  { id: "DIESEL", label: "Diesel (Auto Grade)", icon: "🛢️", color: "#7c3aed" },
+  { id: "PETROL92", label: "Petrol (92 Octane)", icon: "⛽", color: "#0284c7" },
+  { id: "SUPER_DIESEL", label: "Super Diesel", icon: "🛢️", color: "#9333ea" },
 ];
 
 /* ─── Booking Modal ───────────────────────────────────────────────── */

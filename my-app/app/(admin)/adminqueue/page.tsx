@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Car } from "lucide-react";
 import styles from "./page.module.css";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminHeader from "@/components/layout/AdminHeader";
@@ -250,7 +251,7 @@ export default function AdminQueue() {
                 {queueItems.length === 0 ? (
                   <tr>
                     <td colSpan={5} style={{ textAlign: "center", padding: "40px 0", color: "#64748b" }}>
-                      <div>🚗</div>
+                      <div style={{ display: "flex", justifyContent: "center", color: "#94a3b8" }}><Car size={32} /></div>
                       <div style={{ fontWeight: 600, marginTop: 8 }}>No active vehicles in queue</div>
                       <div style={{ fontSize: 13, color: "#94a3b8" }}>
                         When users book a slot for {adminData.stationName}, they will appear here in sequence.

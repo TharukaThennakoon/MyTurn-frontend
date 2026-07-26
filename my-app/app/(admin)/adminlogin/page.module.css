@@ -158,7 +158,7 @@
   box-shadow: 0 0 0 3px rgba(0, 88, 190, 0.15);
 }
 
-.form button {
+.form button[type="submit"] {
   margin-top: 12px;
   border: 0;
   border-radius: 10px;
@@ -174,9 +174,37 @@
     filter 0.16s ease;
 }
 
-.form button:hover {
+.form button[type="submit"]:hover {
   transform: translateY(-1px);
   filter: brightness(1.03);
+}
+
+/* password field */
+.passwordWrap {
+  position: relative;
+}
+
+.passwordWrap input {
+  padding-right: 2.6rem !important;
+  width: 100%;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  box-shadow: none;
+  line-height: 1;
 }
 
 .bottomText {
