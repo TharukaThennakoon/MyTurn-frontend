@@ -23,11 +23,12 @@ interface RealTimeSlot {
   status: "OPEN" | "BLOCKED" | "FULL" | "CLOSED";
 }
 
+// Fuel IDs MUST match backend FuelType enum: PETROL92, PETROL95, DIESEL, SUPER_DIESEL
 const REAL_FUEL_TYPES = [
-  { id: "PETROL_95", label: "Petrol (95 Octane)", icon: "⛽", color: "#2563eb" },
-  { id: "AUTO_DIESEL", label: "Diesel (Auto Grade)", icon: "🛢️", color: "#7c3aed" },
-  { id: "PETROL_92", label: "Petrol (92 Octane)", icon: "⛽", color: "#0284c7" },
-  { id: "SUPER_DIESEL", label: "Super Diesel", icon: "🛢️", color: "#9333ea" },
+  { id: "PETROL95",    label: "Petrol (95 Octane)",  icon: "⛽", color: "#2563eb" },
+  { id: "DIESEL",      label: "Diesel (Auto Grade)",  icon: "🛢️", color: "#7c3aed" },
+  { id: "PETROL92",    label: "Petrol (92 Octane)",   icon: "⛽", color: "#0284c7" },
+  { id: "SUPER_DIESEL",label: "Super Diesel",          icon: "🛢️", color: "#9333ea" },
 ];
 
 /* ─── Booking Modal ───────────────────────────────────────────────── */
@@ -51,8 +52,6 @@ function BookingModal({
 
   const [vehiclePlateInput, setVehiclePlateInput] = useState<string>(() => {
     try {
-      const storedVeh = localStorage.getItem("userVehicleNumber") || localStorage.getItem("vehicleNumber");
-      if (storedVeh) return storedVeh;
       const userStr = localStorage.getItem("user");
       if (userStr) {
         const u = JSON.parse(userStr);
@@ -60,9 +59,23 @@ function BookingModal({
           return u.vehicleNumber || u.vehicleRegistration || u.plateNumber;
         }
       }
+      const storedVeh = localStorage.getItem("userVehicleNumber") || localStorage.getItem("vehicleNumber");
+      if (storedVeh) return storedVeh;
     } catch (e) { }
-    return "WP CAB-8899";
+    return "";
   });
+
+  // Read vehicleId from localStorage (stored at login from backend response)
+  const getVehicleId = (): number | null => {
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        return u.vehicleId ? Number(u.vehicleId) : null;
+      }
+    } catch (e) { }
+    return null;
+  };
 
   // Fetch real time slots for station on mount or when moving to slot step
   useEffect(() => {
@@ -110,66 +123,59 @@ function BookingModal({
   // Submit real booking to POST /api/v1/bookings
   const handleConfirmBooking = async () => {
     if (!fuel || !slotId) return;
+
+    const vehicleId = getVehicleId();
+    if (!vehicleId) {
+      setErrorMessage("Could not find your vehicle ID. Please log out and log in again.");
+      return;
+    }
+
     setSubmitting(true);
     setErrorMessage("");
 
-    const timeSlotStr = selectedSlot
-      ? `${selectedSlot.startTime} - ${selectedSlot.endTime}`
-      : "08:00 AM - 08:10 AM";
-    const fuelLabel = selectedFuelObj?.label || fuel;
-    const assignedToken = Math.floor(Math.random() * 80) + 100;
-
-    let currentUserEmail = "";
     try {
-      const userStr = localStorage.getItem("user");
-      if (userStr) {
-        currentUserEmail = JSON.parse(userStr).email || "";
-      }
-    } catch (e) { }
-
-    const bookingObject = {
-      id: Date.now(),
-      tokenNumber: assignedToken,
-      stationId: stationId,
-      stationName: stationName,
-      slotTimeRange: timeSlotStr,
-      fuelType: fuelLabel,
-      status: "WAITING",
-      vehicleNumber: vehiclePlateInput,
-      vehiclePlate: vehiclePlateInput,
-      userEmail: currentUserEmail,
-      createdAt: new Date().toISOString(),
-      estimatedArrivalMins: 15,
-    };
-
-    try {
-      await apiClient.post<any>("/bookings", {
+      const res = await apiClient.post<any>("/bookings", {
         stationId: stationId,
+        vehicleId: vehicleId,
         fuelType: fuel,
         timeSlotId: slotId,
       });
-    } catch (e) {
-      // Handled gracefully with fallback sync
-    } finally {
-      // 1. Save active booking for User Dashboard
+
+      if (!res.success) {
+        throw new Error(res.message || "Booking failed. Please try again.");
+      }
+
+      // Store active booking data from the real API response
+      const bookingData = res.data || {};
+      const timeSlotStr = selectedSlot
+        ? `${selectedSlot.startTime} - ${selectedSlot.endTime}`
+        : "08:00 - 08:10";
+
+      const bookingObject = {
+        id: bookingData.id || Date.now(),
+        tokenNumber: bookingData.digitalToken?.tokenNumber || bookingData.queuePosition || "—",
+        stationId: stationId,
+        stationName: stationName,
+        slotTimeRange: timeSlotStr,
+        fuelType: selectedFuelObj?.label || fuel,
+        status: bookingData.status || "CONFIRMED",
+        vehicleNumber: bookingData.vehicleNumber || vehiclePlateInput,
+        vehiclePlate: bookingData.vehicleNumber || vehiclePlateInput,
+        bookingReference: bookingData.bookingReference,
+        createdAt: new Date().toISOString(),
+        estimatedArrivalMins: bookingData.estimatedWaitMinutes || 15,
+      };
+
+      // Save active booking for User Dashboard display
       localStorage.setItem("userActiveBooking", JSON.stringify(bookingObject));
-
-      // 2. Append booking to Admin Station Queue
-      try {
-        const key = `stationBookings_${stationId}`;
-        const existing = localStorage.getItem(key);
-        const list = existing ? JSON.parse(existing) : [];
-        list.unshift(bookingObject);
-        localStorage.setItem(key, JSON.stringify(list));
-        localStorage.setItem("stationBookings_general", JSON.stringify(list));
-        localStorage.setItem("stationBookings_latest", JSON.stringify(list));
-      } catch (e) { }
-
-      // 3. Dispatch storage event for live UI update across open tabs
+      // Dispatch storage event for live UI update across tabs
       window.dispatchEvent(new Event("storage"));
 
-      setCreatedBookingToken(assignedToken);
+      setCreatedBookingToken(bookingData.queuePosition || bookingData.digitalToken?.tokenNumber || null);
       setStep("done");
+    } catch (err: any) {
+      setErrorMessage(err.message || "Booking failed. Please check your details and try again.");
+    } finally {
       setSubmitting(false);
     }
   };

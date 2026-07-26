@@ -6,11 +6,6 @@ import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import stationAdminService from "@/services/stationAdminService";
 
-const PROVINCES = [
-  "Western", "Central", "Southern", "Northern", "Eastern",
-  "North Western", "North Central", "Uva", "Sabaragamuwa",
-];
-
 const SL_DISTRICTS = [
   "Colombo", "Gampaha", "Kalutara", "Kandy", "Matale", "Nuwara Eliya",
   "Galle", "Matara", "Hambantota", "Jaffna", "Kilinochchi", "Mannar",
@@ -23,13 +18,7 @@ type FormData = {
   // Step 1 — Personal
   fullName: string;
   email: string;
-  mobile: string;
   nic: string;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  province: string;
-  postalCode: string;
   // Step 2 — Station
   stationName: string;
   stationAddress: string;
@@ -47,8 +36,7 @@ type FormData = {
 };
 
 const initial: FormData = {
-  fullName: "", email: "", mobile: "", nic: "",
-  addressLine1: "", addressLine2: "", city: "", province: "", postalCode: "",
+  fullName: "", email: "", nic: "",
   stationName: "", stationAddress: "", stationCity: "", stationDistrict: "",
   stationContact: "", openingTime: "06:00", closingTime: "20:00",
   latitude: null, longitude: null,
@@ -207,11 +195,7 @@ export default function AdminRegisterPage() {
     if (currentStep === 1) {
       if (!form.fullName.trim()) e.fullName = "Full name is required.";
       if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = "Enter a valid email.";
-      if (!form.mobile.match(/^0\d{9}$/)) e.mobile = "Enter a valid Sri Lankan mobile (e.g. 07XXXXXXXX).";
       if (!form.nic.match(/^(\d{9}[VvXx]|\d{12})$/)) e.nic = "Enter a valid NIC (9+V/X or 12 digits).";
-      if (!form.addressLine1.trim()) e.addressLine1 = "Address is required.";
-      if (!form.city.trim()) e.city = "City is required.";
-      if (!form.province) e.province = "Province is required.";
     }
     if (currentStep === 2) {
       if (!form.stationName.trim()) e.stationName = "Station name is required.";
@@ -268,7 +252,6 @@ export default function AdminRegisterPage() {
         name: form.fullName,
         email: form.email,
         password: form.password,
-        phone: form.mobile,
         stationId,
       });
 
@@ -361,21 +344,12 @@ export default function AdminRegisterPage() {
                 {errors.fullName && <p className={styles.error}>{errors.fullName}</p>}
               </div>
 
-              <div className={styles.fieldRow}>
-                <div className={styles.field}>
-                  <label className={styles.label}>Email Address <span className={styles.req}>*</span></label>
-                  <input className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
-                    type="email" placeholder="kamal@station.lk" value={form.email}
-                    onChange={(e) => set("email", e.target.value)} />
-                  {errors.email && <p className={styles.error}>{errors.email}</p>}
-                </div>
-                <div className={styles.field}>
-                  <label className={styles.label}>Mobile Number <span className={styles.req}>*</span></label>
-                  <input className={`${styles.input} ${errors.mobile ? styles.inputError : ""}`}
-                    type="tel" placeholder="07XXXXXXXX" value={form.mobile}
-                    onChange={(e) => set("mobile", e.target.value)} />
-                  {errors.mobile && <p className={styles.error}>{errors.mobile}</p>}
-                </div>
+              <div className={styles.fieldFull}>
+                <label className={styles.label}>Email Address <span className={styles.req}>*</span></label>
+                <input className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
+                  type="email" placeholder="kamal@station.lk" value={form.email}
+                  onChange={(e) => set("email", e.target.value)} />
+                {errors.email && <p className={styles.error}>{errors.email}</p>}
               </div>
 
               <div className={styles.fieldFull}>
@@ -386,45 +360,9 @@ export default function AdminRegisterPage() {
                 {errors.nic && <p className={styles.error}>{errors.nic}</p>}
               </div>
 
-              <div className={styles.fieldFull}>
-                <label className={styles.label}>Address Line 1 <span className={styles.req}>*</span></label>
-                <input className={`${styles.input} ${errors.addressLine1 ? styles.inputError : ""}`}
-                  placeholder="No. 45, Main Street" value={form.addressLine1}
-                  onChange={(e) => set("addressLine1", e.target.value)} />
-                {errors.addressLine1 && <p className={styles.error}>{errors.addressLine1}</p>}
-              </div>
-
-              <div className={styles.fieldFull}>
-                <label className={styles.label}>Address Line 2 <span className={styles.optional}>(Optional)</span></label>
-                <input className={styles.input}
-                  placeholder="Apartment, suite, etc." value={form.addressLine2}
-                  onChange={(e) => set("addressLine2", e.target.value)} />
-              </div>
-
-              <div className={styles.fieldRow}>
-                <div className={styles.field}>
-                  <label className={styles.label}>City <span className={styles.req}>*</span></label>
-                  <input className={`${styles.input} ${errors.city ? styles.inputError : ""}`}
-                    placeholder="e.g. Colombo" value={form.city}
-                    onChange={(e) => set("city", e.target.value)} />
-                  {errors.city && <p className={styles.error}>{errors.city}</p>}
-                </div>
-                <div className={styles.field}>
-                  <label className={styles.label}>Province <span className={styles.req}>*</span></label>
-                  <select className={`${styles.select} ${errors.province ? styles.inputError : ""}`}
-                    value={form.province} onChange={(e) => set("province", e.target.value)}>
-                    <option value="">Select province…</option>
-                    {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                  {errors.province && <p className={styles.error}>{errors.province}</p>}
-                </div>
-              </div>
-
-              <div className={styles.fieldHalf}>
-                <label className={styles.label}>Postal Code <span className={styles.optional}>(Optional)</span></label>
-                <input className={styles.input}
-                  placeholder="e.g. 10100" value={form.postalCode}
-                  onChange={(e) => set("postalCode", e.target.value)} />
+              <div className={styles.infoNote}>
+                <span className={styles.infoNoteIcon}>ℹ️</span>
+                <p>Your station contact number and address will be collected in the next step as part of your station information.</p>
               </div>
             </div>
           )}
