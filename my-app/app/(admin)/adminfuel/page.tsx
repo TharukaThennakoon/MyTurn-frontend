@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import styles from "./page.module.css";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminHeader from "@/components/layout/AdminHeader";
-import apiClient from "@/services/apiClient";
+import { adminApiClient as apiClient } from "@/services/apiClient";
+
 
 interface StationDetail {
   id: number;
@@ -121,13 +122,13 @@ export default function AdminFuel() {
         const dLiters = dStatus === "AVAILABLE" ? 5000 : dStatus === "LIMITED" ? 1000 : 0;
 
         await apiClient.put(`/stations/${adminData.stationId}/inventory`, {
-          fuelType: "PETROL_95",
+          fuelType: "PETROL95",
           availableLiters: pLiters,
           limitedThreshold: 1000,
         });
 
         await apiClient.put(`/stations/${adminData.stationId}/inventory`, {
-          fuelType: "AUTO_DIESEL",
+          fuelType: "DIESEL",
           availableLiters: dLiters,
           limitedThreshold: 1000,
         });

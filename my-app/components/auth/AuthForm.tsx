@@ -103,6 +103,7 @@ export default function AuthForm({ type }: Props) {
               name: res.data?.name || res.data?.fullName || email.split("@")[0],
               email: res.data?.email || email,
               phone: res.data?.phone || "",
+              vehicleId: res.data?.vehicleId || null,
               vehicleNumber: res.data?.vehicleNumber || "",
             })
           );

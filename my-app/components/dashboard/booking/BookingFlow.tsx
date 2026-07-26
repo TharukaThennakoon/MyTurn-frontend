@@ -30,30 +30,36 @@ interface BackendStation {
   status?: string;
 }
 
+// Matches TimeSlotResponse.java exactly
 interface Timeslot {
   id: number;
-  startTime: string;
+  slotDate: string;
+  startTime: string;      // "08:00:00"
   endTime: string;
-  maxCapacity: number;
-  bookedCount: number;
+  fuelType: string;
+  totalCapacity: number;
+  availableCapacity: number;
   status: "OPEN" | "FULL" | "BLOCKED";
+  bookable: boolean;
 }
 
+// Fuel type IDs MUST exactly match the backend FuelType enum:
+// PETROL92, PETROL95, DIESEL, SUPER_DIESEL
 const REAL_FUELS: FuelOption[] = [
   {
-    id: "PETROL_95",
+    id: "PETROL95",
     name: "Petrol 95 Octane",
     description: "95 Octane High Performance",
     pricePerLiter: "LKR 370/L",
   },
   {
-    id: "AUTO_DIESEL",
-    name: "Auto Diesel",
+    id: "DIESEL",
+    name: "Auto Diesel (95)",
     description: "Low Sulfur Eco Grade Diesel",
     pricePerLiter: "LKR 325/L",
   },
   {
-    id: "PETROL_92",
+    id: "PETROL92",
     name: "Petrol 92 Octane",
     description: "Standard Regular 92 Octane",
     pricePerLiter: "LKR 340/L",
@@ -76,7 +82,8 @@ export default function BookingFlow() {
   const [slot, setSlot] = useState<SlotOption | null>(null);
 
   const [confirmed, setConfirmed] = useState(false);
-  const [tokenNumber, setTokenNumber] = useState<string>("#TK-179");
+  const [bookingError, setBookingError] = useState<string | null>(null);
+  const [tokenNumber, setTokenNumber] = useState<string>("");
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -175,18 +182,24 @@ export default function BookingFlow() {
     fetchTimeslotsForStation(1);
   };
 
-  const fetchTimeslotsForStation = async (stId: number) => {
+  const fetchTimeslotsForStation = async (stId: number, fuelType?: string) => {
     try {
       const today = new Date().toISOString().split("T")[0];
-      const res = await apiClient.get<Timeslot[]>(`/timeslots?stationId=${stId}&date=${today}`);
+      // Correct endpoint: GET /api/v1/stations/{stationId}/slots?date=...&fuelType=...
+      // fuelType must match backend FuelType enum: PETROL92, PETROL95, DIESEL, SUPER_DIESEL
+      const ft = fuelType || "DIESEL";
+      const res = await apiClient.get<Timeslot[]>(
+        `/stations/${stId}/slots?date=${today}&fuelType=${ft}`
+      );
       if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-        const mappedSlots: SlotOption[] = res.data.map((ts) => {
+        const mappedSlots: SlotOption[] = res.data.map((ts: Timeslot) => {
           const startHour = parseInt(ts.startTime.split(":")[0]);
           const period = startHour < 12 ? "MORNING" : startHour < 14 ? "NOON" : "AFTERNOON";
-          const left = ts.maxCapacity - ts.bookedCount;
+          // availableCapacity = slots still bookable
+          const left = ts.availableCapacity;
           const level: SlotOption["capacityLevel"] = left > 5 ? "high" : left > 2 ? "moderate" : "near";
           return {
-            id: String(ts.id),
+            id: String(ts.id),  // Real numeric ID from DB
             period,
             time: `${ts.startTime.substring(0, 5)} - ${ts.endTime.substring(0, 5)}`,
             capacity: left > 0 ? `${left} Slots Left` : "Near Full",
@@ -196,6 +209,8 @@ export default function BookingFlow() {
         setSlotList(mappedSlots);
         setSlot(mappedSlots[0]);
       } else {
+        // Backend returned no slots (shouldn't happen since backend auto-generates)
+        // Use fallback slots for offline/error cases
         fallbackSlots();
       }
     } catch (e) {
@@ -232,12 +247,20 @@ export default function BookingFlow() {
   const handleStationSelect = (s: StationOption) => {
     setStation(s);
     setConfirmed(false);
-    fetchTimeslotsForStation(Number(s.id));
+    // Only fetch slots if a fuel is already selected
+    if (fuel) {
+      fetchTimeslotsForStation(Number(s.id), fuel.id);
+    }
   };
 
   const handleFuelSelect = (f: FuelOption) => {
     setFuel(f);
+    setSlot(null);
     setConfirmed(false);
+    // Fetch timeslots filtered by the selected fuel type
+    if (station) {
+      fetchTimeslotsForStation(Number(station.id), f.id);
+    }
   };
 
   const handleSlotSelect = (s: SlotOption) => {
@@ -248,91 +271,80 @@ export default function BookingFlow() {
   const handleConfirm = async () => {
     if (!station || !fuel || !slot) return;
     setSubmitting(true);
+    setBookingError(null);
+
+    // Get vehicleId stored at login (backend @NotNull field)
+    const getVehicleId = (): number | null => {
+      try {
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          const u = JSON.parse(userStr);
+          return u.vehicleId ? Number(u.vehicleId) : null;
+        }
+      } catch (e) {}
+      return null;
+    };
+
+    const vehicleId = getVehicleId();
+    if (!vehicleId) {
+      setBookingError("Vehicle not found. Please log out and log in again to refresh your session.");
+      setSubmitting(false);
+      return;
+    }
 
     try {
       const payload = {
-        stationId: Number(station.id) || 1,
-        fuelType: fuel.id,
-        timeslotId: Number(slot.id) || 1,
+        stationId: Number(station.id),
+        vehicleId,                        // Required by backend — from user session
+        fuelType: fuel.id as any,         // e.g. "PETROL95", "DIESEL" — matches backend enum
+        timeSlotId: Number(slot.id),      // Correct camelCase matching backend field name
       };
 
-      const res = await apiClient.post<{ tokenNumber: number; id: number }>("/bookings", payload);
-      const generatedToken = res.data?.tokenNumber ? `#TK-${res.data.tokenNumber}` : `#TK-${Math.floor(100 + Math.random() * 900)}`;
+      const res = await apiClient.post<any>("/bookings", payload);
+
+      if (!res.success) {
+        throw new Error(res.message || "Booking failed. Please try again.");
+      }
+
+      const bookingData = res.data || {};
+      // Use backend token number, fall back to booking reference
+      const generatedToken = bookingData.digitalToken?.tokenNumber
+        || bookingData.bookingReference
+        || `#TK-${Math.floor(100 + Math.random() * 900)}`;
 
       setTokenNumber(generatedToken);
       setConfirmed(true);
 
+      // Get vehicle number for display
       const getUserVehicleNumber = (): string => {
         try {
           const userStr = localStorage.getItem("user");
           if (userStr) {
             const u = JSON.parse(userStr);
             if (u.vehicleNumber) return u.vehicleNumber;
-            if (u.vehicleRegistration) return u.vehicleRegistration;
-            if (u.plateNumber) return u.plateNumber;
           }
-          const directVeh = localStorage.getItem("vehicleNumber") || localStorage.getItem("userVehicleNumber");
-          if (directVeh) return directVeh;
-        } catch (e) { }
-        return "WP CAB-1234";
+        } catch (e) {}
+        return bookingData.vehicleNumber || "—";
       };
 
       const userVehicleNum = getUserVehicleNumber();
 
-      let currentUserEmail = "";
-      try {
-        const userStr = localStorage.getItem("user");
-        if (userStr) currentUserEmail = JSON.parse(userStr).email || "";
-      } catch (e) { }
-
-      // Save to localStorage for live dashboard sync
+      // Save active booking for dashboard display
       const activeObj = {
-        tokenNumber: res.data?.tokenNumber || 179,
-        status: "Active",
+        id: bookingData.id,
+        bookingReference: bookingData.bookingReference,
+        tokenNumber: bookingData.digitalToken?.tokenNumber || generatedToken,
+        status: bookingData.status || "CONFIRMED",
         stationName: station.name,
         slotTimeRange: slot.time,
-        estimatedArrivalMins: 15,
+        estimatedArrivalMins: bookingData.estimatedWaitMinutes || 15,
         fuelType: fuel.name,
         vehicleNumber: userVehicleNum,
-        vehiclePlate: userVehicleNum,
-        userEmail: currentUserEmail,
-      };
-      localStorage.setItem("userActiveBooking", JSON.stringify(activeObj));
-
-      // Save to station queue
-      const existingQueue = JSON.parse(localStorage.getItem(`stationBookings_${station.id}`) || localStorage.getItem("stationBookings_general") || "[]");
-      const newEntry = {
-        id: res.data?.id || Date.now(),
-        tokenNumber: activeObj.tokenNumber,
-        vehiclePlate: userVehicleNum,
-        vehicleNumber: userVehicleNum,
-        fuelType: fuel.name,
-        slotTime: slot.time,
-        status: "WAITING",
-        createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-      const updatedQueue = [newEntry, ...existingQueue];
-      localStorage.setItem(`stationBookings_${station.id}`, JSON.stringify(updatedQueue));
-      localStorage.setItem("stationBookings_general", JSON.stringify(updatedQueue));
-      localStorage.setItem("stationBookings_latest", JSON.stringify(updatedQueue));
-
-      window.dispatchEvent(new Event("storage"));
-    } catch (e) {
-      // Local fallback token creation
-      const fakeToken = `#TK-${Math.floor(100 + Math.random() * 900)}`;
-      setTokenNumber(fakeToken);
-      setConfirmed(true);
-
-      const activeObj = {
-        tokenNumber: parseInt(fakeToken.replace("#TK-", "")),
-        status: "Active",
-        stationName: station.name,
-        slotTimeRange: slot.time,
-        estimatedArrivalMins: 15,
-        fuelType: fuel.name,
       };
       localStorage.setItem("userActiveBooking", JSON.stringify(activeObj));
       window.dispatchEvent(new Event("storage"));
+    } catch (err: any) {
+      setBookingError(err.message || "Booking failed. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -350,6 +362,12 @@ export default function BookingFlow() {
         {confirmed && (
           <div style={styles.successBanner} role="status">
             ✓ Booking confirmed! Token <strong>{tokenNumber}</strong> issued — see you at <strong>{station?.name}</strong>.
+          </div>
+        )}
+
+        {bookingError && (
+          <div style={styles.errorBanner} role="alert">
+            ⚠️ {bookingError}
           </div>
         )}
 
@@ -432,5 +450,17 @@ const styles: Record<string, React.CSSProperties> = {
     borderWidth: 1,
     borderStyle: "solid",
     borderColor: "#86efac",
+  },
+  errorBanner: {
+    background: "#fee2e2",
+    color: "#991b1b",
+    padding: "12px 16px",
+    borderRadius: 10,
+    fontSize: 13,
+    fontWeight: 600,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "#fca5a5",
   },
 };

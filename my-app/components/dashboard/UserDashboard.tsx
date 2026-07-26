@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import ActiveAppointmentCard from "@/components/dashboard/ActiveAppointmentCard";
-import SmartPick from "@/components/dashboard/SmartPick";
 import NearbyStations from "@/components/dashboard/NearbyStations";
 import QuickInsights from "@/components/dashboard/QuickInsights";
 import DashboardBottomNav from "@/components/dashboard/DashboardBottomNav";
@@ -117,14 +116,22 @@ export default function UserDashboard() {
       if (stationsRes.success && Array.isArray(stationsRes.data)) {
         setStations(stationsRes.data);
       }
+    } catch (e) {
+      console.warn("Stations fetch error:", e);
+    }
 
-      // 2. Fetch active booking if user is logged in
+    try {
+      // 2. Fetch active booking — "No active booking found" is a normal 404, not a real error
       const bookingRes = await apiClient.get<ActiveBooking>("/bookings/active");
       if (bookingRes.success && bookingRes.data) {
         setActiveBooking(bookingRes.data);
       }
-    } catch (e) {
-      console.warn("User dashboard data fetch error:", e);
+    } catch (e: any) {
+      const msg = e?.message?.toLowerCase() || "";
+      // Silently ignore expected "no active booking" 404 — user just doesn't have one
+      if (!msg.includes("no active booking") && !msg.includes("not found")) {
+        console.warn("Active booking fetch error:", e);
+      }
     } finally {
       setLoading(false);
     }
@@ -182,11 +189,6 @@ export default function UserDashboard() {
       },
     ];
 
-  const bestStation = stations[0];
-  const bestStationName = bestStation?.stationName || "Best Registered Station";
-  const bestWaitTime = `${bestStation?.avgServiceTimeMinutes || 5} mins`;
-  const bestDistance = getRealDistance(bestStation?.latitude, bestStation?.longitude);
-
   const QUICK_INSIGHTS = [
     { icon: "▦", label: "AVAILABILITY", value: "95%" },
     { icon: "⊙", label: "STATIONS", value: String(Math.max(1, stations.length)) },
@@ -230,28 +232,9 @@ export default function UserDashboard() {
           </div>
         )}
 
-        {/* Smart Pick + Nearby Stations – side by side */}
-        <div style={styles.midRow}>
-          {/* Smart Pick panel */}
-          <div style={styles.smartPickWrapper}>
-            <p style={styles.sectionLabel}>SMART PICK</p>
-            <SmartPick
-              stationId={bestStation?.id}
-              stationName={bestStationName}
-              description="Based on real-time registered station data."
-              waitTimeLabel="Wait Time"
-              waitTimeValue={bestWaitTime}
-              distance={bestDistance}
-            />
-          </div>
-
-          {/* Divider */}
-          <div style={styles.divider} />
-
-          {/* Nearby stations panel */}
-          <div style={styles.nearbyWrapper}>
-            <NearbyStations stations={mappedNearbyStations} />
-          </div>
+        {/* Nearby Stations — full width, no SmartPick */}
+        <div style={styles.nearbyCard}>
+          <NearbyStations stations={mappedNearbyStations} />
         </div>
 
         {/* Quick Insights */}
@@ -299,35 +282,11 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: "center",
     fontSize: 20,
   },
-  midRow: {
-    display: "flex",
-    gap: 0,
-    border: "1.5px dashed #2563eb",
-    borderRadius: 14,
-    overflow: "hidden",
-  },
-  smartPickWrapper: {
+  nearbyCard: {
+    background: "#ffffff",
+    borderRadius: 16,
+    border: "1px solid #e2e8f0",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.03)",
     padding: "14px 18px 18px",
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-    background: "#fff",
-    flexShrink: 0,
-  },
-  divider: {
-    width: 1,
-    background: "#dbeafe",
-    alignSelf: "stretch",
-  },
-  nearbyWrapper: {
-    flex: 1,
-    padding: "14px 18px 18px",
-    background: "#fff",
-  },
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: 800,
-    letterSpacing: "0.14em",
-    color: "#475569",
   },
 };

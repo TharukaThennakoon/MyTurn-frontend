@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminHeader from "@/components/layout/AdminHeader";
-import apiClient from "@/services/apiClient";
+import { adminApiClient as apiClient } from "@/services/apiClient";
+
 
 interface DashboardData {
   totalBookingsToday: number;
@@ -19,16 +20,19 @@ interface DashboardData {
 }
 
 interface BookingQueueItem {
-  id: number;
-  tokenNumber: number;
+  id: string | number;
+  tokenNumber: string | number;
+  bookingReference?: string;
   stationId?: number;
   stationName?: string;
+  slotStartTime?: string;
+  slotEndTime?: string;
   slotTimeRange?: string;
-  slotTime?: string;
   fuelType?: string;
   status: string;
   vehicleNumber?: string;
-  vehiclePlate?: string;
+  queuePosition?: number;
+  estimatedWaitMinutes?: number;
   createdAt?: string;
 }
 
@@ -67,7 +71,7 @@ export default function AdminQueue() {
         });
 
         if (stId) {
-          fetchQueueMetrics(stId);
+          fetchQueueData(stId);
         } else {
           setLoading(false);
         }
@@ -79,124 +83,75 @@ export default function AdminQueue() {
     }
   }, []);
 
-  const loadQueueFromStorage = (stationId: number | null) => {
-    try {
-      const keys = [
-        stationId ? `stationBookings_${stationId}` : null,
-        "stationBookings_latest",
-        "stationBookings_general",
-        "userActiveBooking",
-      ].filter(Boolean) as string[];
+  // Auto-refresh every 30 seconds so admin sees new bookings without manual refresh
+  useEffect(() => {
+    if (!adminData.stationId) return;
+    const interval = setInterval(() => {
+      fetchQueueData(adminData.stationId!);
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [adminData.stationId]);
 
-      for (const k of keys) {
-        const stored = localStorage.getItem(k);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setQueueItems(parsed);
-            return parsed;
-          } else if (parsed && typeof parsed === "object" && parsed.tokenNumber) {
-            const single: BookingQueueItem[] = [{
-              id: parsed.id || Date.now(),
-              tokenNumber: parsed.tokenNumber,
-              vehicleNumber: parsed.vehicleNumber || parsed.vehiclePlate || "WP CAB-1234",
-              vehiclePlate: parsed.vehiclePlate || parsed.vehicleNumber || "WP CAB-1234",
-              fuelType: parsed.fuelType || "Petrol 95",
-              slotTimeRange: parsed.slotTimeRange || parsed.slotTime || "08:00 AM - 08:10 AM",
-              slotTime: parsed.slotTime || parsed.slotTimeRange || "08:00 AM - 08:10 AM",
-              status: "WAITING",
-              createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            }];
-            setQueueItems(single);
-            return single;
-          }
-        }
+  const fetchQueueData = async (stationId: number) => {
+    try {
+      // 1. Fetch dashboard metrics (totals, fuel availability)
+      const dashRes = await apiClient.get<DashboardData>("/dashboard", { stationId });
+      if (dashRes.success && dashRes.data) {
+        setMetrics({
+          totalBookingsToday: dashRes.data.totalBookingsToday ?? 0,
+          vehiclesInQueue: dashRes.data.vehiclesInQueue ?? 0,
+          vehiclesServedToday: dashRes.data.vehiclesServedToday ?? 0,
+          fuelAvailability: dashRes.data.fuelAvailability || [],
+        });
       }
-    } catch (e) { }
-    return [];
-  };
 
-  const fetchQueueMetrics = async (stationId: number) => {
-    const localQueue = loadQueueFromStorage(stationId);
-
-    try {
-      const res = await apiClient.get<DashboardData>("/dashboard", { stationId });
-      if (res.success && res.data) {
-        const queueCount = Math.max(res.data.vehiclesInQueue ?? 0, localQueue.length);
-        setMetrics({
-          totalBookingsToday: Math.max(res.data.totalBookingsToday ?? 0, localQueue.length),
-          vehiclesInQueue: queueCount,
-          vehiclesServedToday: res.data.vehiclesServedToday ?? 0,
-          fuelAvailability: res.data.fuelAvailability || [],
-        });
-      } else if (localQueue.length > 0) {
-        setMetrics({
-          totalBookingsToday: localQueue.length,
-          vehiclesInQueue: localQueue.length,
-          vehiclesServedToday: 0,
-          fuelAvailability: [],
-        });
+      // 2. Fetch today's actual bookings list from database
+      const bookingsRes = await apiClient.get<BookingQueueItem[]>(
+        `/bookings/station/${stationId}/today`
+      );
+      if (bookingsRes.success && Array.isArray(bookingsRes.data)) {
+        const mapped: BookingQueueItem[] = bookingsRes.data.map((b: any) => ({
+          id: b.id,
+          tokenNumber: b.digitalToken?.tokenNumber || b.queuePosition || "—",
+          bookingReference: b.bookingReference,
+          stationId: b.stationId,
+          stationName: b.stationName,
+          slotTimeRange: b.slotStartTime
+            ? `${b.slotStartTime} - ${b.slotEndTime}`
+            : b.slotTimeRange || "—",
+          fuelType: b.fuelType,
+          status: b.status,
+          vehicleNumber: b.vehicleNumber || "—",
+          queuePosition: b.queuePosition,
+          estimatedWaitMinutes: b.estimatedWaitMinutes,
+          createdAt: b.createdAt,
+        }));
+        setQueueItems(mapped);
       }
     } catch (e) {
-      if (localQueue.length > 0) {
-        setMetrics({
-          totalBookingsToday: localQueue.length,
-          vehiclesInQueue: localQueue.length,
-          vehiclesServedToday: 0,
-          fuelAvailability: [],
-        });
-      }
+      console.warn("Failed to fetch queue data:", e);
     } finally {
       setLoading(false);
     }
   };
 
   const handleCallNext = () => {
-    if (queueItems.length === 0 && metrics.vehiclesInQueue === 0) return;
+    if (queueItems.length === 0) return;
     setCallingNext(true);
 
     setTimeout(() => {
       setCallingNext(false);
-      const updatedList = queueItems.slice(1);
-      setQueueItems(updatedList);
-
-      const stId = adminData.stationId || 1;
-      localStorage.setItem(`stationBookings_${stId}`, JSON.stringify(updatedList));
-      localStorage.setItem("stationBookings_latest", JSON.stringify(updatedList));
-      localStorage.setItem("stationBookings_general", JSON.stringify(updatedList));
-
-      const servedCount = (metrics.vehiclesServedToday || 0) + 1;
-      const newQueueCount = Math.max(0, (metrics.vehiclesInQueue || 1) - 1);
-      const newMetrics = {
-        vehiclesServedToday: servedCount,
-        vehiclesInQueue: newQueueCount,
-        totalBookingsToday: Math.max(metrics.totalBookingsToday, servedCount + updatedList.length),
-      };
-
+      // Remove the first item (served vehicle) from the local list
+      setQueueItems((prev) => prev.slice(1));
       setMetrics((prev) => ({
         ...prev,
-        ...newMetrics,
+        vehiclesInQueue: Math.max(0, (prev.vehiclesInQueue || 1) - 1),
+        vehiclesServedToday: (prev.vehiclesServedToday || 0) + 1,
       }));
-
-      localStorage.setItem("adminServedMetrics", JSON.stringify(newMetrics));
-      localStorage.setItem(`adminServedMetrics_${stId}`, JSON.stringify(newMetrics));
-
-      // Mark user active booking as SUCCESSFUL / COMPLETED
-      try {
-        const userActive = localStorage.getItem("userActiveBooking");
-        if (userActive) {
-          const parsed = JSON.parse(userActive);
-          const updatedActive = {
-            ...parsed,
-            status: "Completed",
-            tokenStatus: "SUCCESSFUL",
-            completedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          };
-          localStorage.setItem("userActiveBooking", JSON.stringify(updatedActive));
-        }
-      } catch (e) { }
-
-      // Broadcast storage event so all open tabs sync live
+      // Refresh from backend after a short delay
+      if (adminData.stationId) {
+        setTimeout(() => fetchQueueData(adminData.stationId!), 2000);
+      }
       window.dispatchEvent(new Event("storage"));
     }, 600);
   };
@@ -295,16 +250,22 @@ export default function AdminQueue() {
                   </tr>
                 ) : (
                   queueItems.map((item, idx) => (
-                    <tr key={item.id || idx}>
-                      <td className={styles.token}>#TK-{item.tokenNumber}</td>
-                      <td>
-                        <div className={styles.identityMain}>{item.vehicleNumber || "WP CAB-1234"}</div>
-                        <div className={styles.identitySub}>{item.fuelType || "Petrol (95 Octane)"}</div>
+                    <tr key={String(item.id) || idx}>
+                      <td className={styles.token}>
+                        {item.tokenNumber || item.bookingReference || `#${idx + 1}`}
                       </td>
-                      <td className={styles.time}>{item.slotTimeRange || "Today"}</td>
                       <td>
-                        <span className={`${styles.status} ${idx === 0 ? styles.statusServing : styles.statusWaiting}`}>
-                          ● {idx === 0 ? "SERVING" : "WAITING"}
+                        <div className={styles.identityMain}>{item.vehicleNumber || "—"}</div>
+                        <div className={styles.identitySub}>{item.fuelType || "—"}</div>
+                      </td>
+                      <td className={styles.time}>{item.slotTimeRange || "—"}</td>
+                      <td>
+                        <span className={`${styles.status} ${
+                          item.status === "SERVING" || item.status === "CHECKED_IN"
+                            ? styles.statusServing
+                            : styles.statusWaiting
+                        }`}>
+                          ● {item.status === "CHECKED_IN" ? "CHECKED-IN" : item.status}
                         </span>
                       </td>
                       <td style={{ textAlign: 'right' }}>
@@ -322,7 +283,7 @@ export default function AdminQueue() {
 
             <div className={styles.tableFooter}>
               <span>
-                Showing {metrics.vehiclesInQueue === 0 ? 0 : 1} of {metrics.vehiclesInQueue} active entries
+                Showing {queueItems.length} of {metrics.vehiclesInQueue} active entries
               </span>
               <div className={styles.pagination}>
                 <button className={styles.pageBtn}>&lsaquo;</button>

@@ -7,7 +7,8 @@ import Image from "next/image";
 
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import AdminHeader from "@/components/layout/AdminHeader";
-import apiClient from "@/services/apiClient";
+import { adminApiClient as apiClient } from "@/services/apiClient";
+
 
 interface DashboardData {
   totalBookingsToday: number;
