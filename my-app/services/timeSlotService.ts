@@ -1,10 +1,11 @@
 import apiClient, { ApiResponse } from "./apiClient";
+import { FuelType } from "./bookingService";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type SlotStatus = "OPEN" | "FULL" | "CLOSED" | "BLOCKED";
 
-export type FuelType = "PETROL92" | "PETROL95" | "DIESEL" | "SUPER_DIESEL";
+export type { FuelType };
 
 export interface TimeSlotResponse {
   id: number;
