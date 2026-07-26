@@ -115,11 +115,9 @@
 .imageOverlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(255,255,255,0.92),
-    transparent
-  );
+  background: linear-gradient(to top,
+      rgba(255, 255, 255, 0.92),
+      transparent);
 }
 
 .citizenContent {
@@ -198,7 +196,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(255,255,255,0.7);
+  background: rgba(255, 255, 255, 0.7);
   padding: 16px;
   border-radius: 14px;
   margin-bottom: 20px;
@@ -327,6 +325,7 @@
     gap: 28px;
   }
 }
+
 /* Shared divider */
 .dividerRow {
   display: flex;
@@ -334,11 +333,13 @@
   gap: 8px;
   margin: 0.5rem 0 0.9rem;
 }
+
 .dividerLine {
   flex: 1;
   height: 1px;
   background: #eee;
 }
+
 .dividerText {
   font-size: 11px;
   color: #aaa;
@@ -360,6 +361,7 @@
   text-decoration: none;
   transition: background 0.18s, border-color 0.18s, transform 0.12s;
 }
+
 .loginButton:hover {
   background: #E1F5EE;
   border-color: #1D9E75;
@@ -384,17 +386,20 @@
   gap: 8px;
   margin: 0.5rem 0 0.9rem;
 }
+
 .adminDividerLine {
   flex: 1;
   height: 1px;
   background: rgba(2, 33, 71, 0.15);
 }
+
 .adminDividerText {
   font-size: 11px;
   color: rgba(19, 18, 18, 0.778);
   letter-spacing: 0.05em;
   white-space: nowrap;
 }
+
 .adminCardLabel {
   font-size: 11px;
   font-weight: 600;
@@ -419,6 +424,7 @@
   text-decoration: none;
   transition: background 0.18s, border-color 0.18s, transform 0.12s;
 }
+
 .adminLoginButton:hover {
   background: rgba(4, 129, 246, 0.1);
   border-color: rgba(28, 108, 206, 0.6);

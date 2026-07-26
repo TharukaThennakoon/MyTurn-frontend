@@ -4,7 +4,7 @@ import React, { useState } from "react";
 
 interface ActiveAppointmentCardProps {
   tokenNumber: number;
-  status: "Active" | "Pending" | "Completed";
+  status: string;
   stationName: string;
   timeRange: string;
   arrivalMins: number;

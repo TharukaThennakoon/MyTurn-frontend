@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Fuel, X } from "lucide-react";
 
 type StatusLevel = "OPTIMAL" | "BUSY" | "HIGH";
 
@@ -12,7 +13,7 @@ interface Station {
   waitMin: number;
   queueSize: number;
   queueLabel: string;
-  icon: string;
+  icon: React.ReactNode;
   iconBg: string;
   lat?: number;
   lng?: number;
@@ -24,8 +25,8 @@ interface NearbyStationsProps {
 
 const STATUS_COLORS: Record<StatusLevel, { bg: string; text: string; dot: string }> = {
   OPTIMAL: { bg: "#dcfce7", text: "#15803d", dot: "#22c55e" },
-  BUSY:    { bg: "#fef9c3", text: "#a16207", dot: "#f59e0b" },
-  HIGH:    { bg: "#fee2e2", text: "#b91c1c", dot: "#ef4444" },
+  BUSY: { bg: "#fef9c3", text: "#a16207", dot: "#f59e0b" },
+  HIGH: { bg: "#fee2e2", text: "#b91c1c", dot: "#ef4444" },
 };
 
 /* ─── Full-screen Map Modal ─────────────────────────────────────────── */
@@ -81,7 +82,7 @@ function MapModal({
             style={mapCloseBtn}
             aria-label="Close map"
           >
-            ✕
+            <X size={18} />
           </button>
         </div>
 
@@ -167,11 +168,11 @@ function MapModal({
                 >
                   <div style={{
                     width: 32, height: 32, borderRadius: 8,
-                    background: sc.bg, color: sc.text,
+                    background: sc.bg,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontWeight: 800, fontSize: 13, flexShrink: 0,
+                    flexShrink: 0,
                   }}>
-                    ⛽
+                    <Fuel size={16} color={sc.text} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: "#0f172a" }}>{s.name}</div>
@@ -252,8 +253,8 @@ export default function NearbyStations({ stations }: NearbyStationsProps) {
                   (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
                 }}
               >
-                <div style={{ ...iconBox, background: s.iconBg }}>
-                  <span style={{ fontSize: 20 }}>{s.icon}</span>
+                <div style={{ ...iconBox, background: s.iconBg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {s.icon}
                 </div>
                 <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
                   <p style={{ fontSize: 16.5, fontWeight: 700, color: "#0f172a", margin: 0 }}>{s.name}</p>

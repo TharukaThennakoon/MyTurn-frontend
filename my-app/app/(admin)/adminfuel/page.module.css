@@ -150,7 +150,7 @@
 .activeAvailable {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   color: #0f172a;
 }
 
@@ -309,7 +309,7 @@
 
 .mapPin {
   color: #3b82f6;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
 }
 
 .mapBtn {
@@ -324,7 +324,7 @@
   border-radius: 20px;
   border: none;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: background 0.2s;
 }
 
@@ -384,9 +384,23 @@
 }
 
 @media (max-width: 768px) {
-  .container { flex-direction: column; }
-  .content { padding: 16px; }
-  .mapSection { grid-template-columns: 1fr; }
-  .coordsRow { flex-direction: column; }
-  .formRow { grid-template-columns: 1fr; }
+  .container {
+    flex-direction: column;
+  }
+
+  .content {
+    padding: 16px;
+  }
+
+  .mapSection {
+    grid-template-columns: 1fr;
+  }
+
+  .coordsRow {
+    flex-direction: column;
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
 }

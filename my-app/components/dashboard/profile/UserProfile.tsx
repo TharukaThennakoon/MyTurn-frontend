@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import DashboardTopbar from "@/components/dashboard/DashboardTopbar";
 import DashboardBottomNav from "@/components/dashboard/DashboardBottomNav";
+import { Edit3, CheckCircle2, Star, Leaf, Hash, Zap, Car, CreditCard, ShieldCheck, ChevronRight } from "lucide-react";
 
 export default function UserProfile() {
   // Profile state details — loaded from localStorage after login
@@ -41,7 +42,7 @@ export default function UserProfile() {
           ]);
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   // Modal display states
@@ -66,7 +67,7 @@ export default function UserProfile() {
       const stored = localStorage.getItem("user");
       const existing = stored ? JSON.parse(stored) : {};
       localStorage.setItem("user", JSON.stringify({ ...existing, ...tempInfo }));
-    } catch (e) {}
+    } catch (e) { }
     setProfile({ ...tempInfo });
     setShowEditInfo(false);
   };
@@ -105,15 +106,19 @@ export default function UserProfile() {
               style={styles.editAvatarBtn}
               aria-label="Edit photo"
             >
-              ✎
+              <Edit3 size={14} />
             </button>
           </div>
           <div style={styles.heroInfo}>
             <h1 style={styles.heroName}>{profile.name}</h1>
             <p style={styles.heroSub}>Elite Member since Jan 2023</p>
             <div style={styles.badges}>
-              <span style={styles.badgeVerified}>✓ VERIFIED DRIVER</span>
-              <span style={styles.badgeRating}>★ 4.9 RATING</span>
+              <span style={{ ...styles.badgeVerified, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                <CheckCircle2 size={12} /> VERIFIED DRIVER
+              </span>
+              <span style={{ ...styles.badgeRating, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                <Star size={12} fill="#eab308" color="#eab308" /> 4.9 RATING
+              </span>
             </div>
           </div>
         </section>

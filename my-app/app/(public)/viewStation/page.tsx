@@ -131,15 +131,15 @@ const FUEL_TYPES = ["All Fuels", "95 Octane", "Super 98", "Premium Petrol", "Die
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const STATUS_MAP = {
-  OPEN:   { label: "Open",   color: "#22c55e", bg: "#dcfce7" },
-  BUSY:   { label: "Busy",   color: "#f59e0b", bg: "#fef3c7" },
+  OPEN: { label: "Open", color: "#22c55e", bg: "#dcfce7" },
+  BUSY: { label: "Busy", color: "#f59e0b", bg: "#fef3c7" },
   CLOSED: { label: "Closed", color: "#ef4444", bg: "#fee2e2" },
 };
 
 const FUEL_STATUS_MAP = {
-  AVAILABLE:   { color: "#15803d", bg: "#dcfce7", label: "Available" },
-  LIMITED:     { color: "#a16207", bg: "#fef3c7", label: "Limited"   },
-  UNAVAILABLE: { color: "#9ca3af", bg: "#f1f5f9", label: "N/A"       },
+  AVAILABLE: { color: "#15803d", bg: "#dcfce7", label: "Available" },
+  LIMITED: { color: "#a16207", bg: "#fef3c7", label: "Limited" },
+  UNAVAILABLE: { color: "#9ca3af", bg: "#f1f5f9", label: "N/A" },
 };
 
 function StarRating({ rating }: { rating: number }) {
@@ -171,7 +171,7 @@ function StationCard({ station }: { station: Station }) {
     timeSlotService
       .getAllSlotsForDate(stationId, today)
       .then((res) => { if (res.success) setLiveSlots(res.data); })
-      .catch(() => {/* silently fall back to mock */});
+      .catch(() => {/* silently fall back to mock */ });
   }, [station.id, isClosed]);
 
   // Derived slot stats

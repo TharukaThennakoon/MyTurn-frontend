@@ -1,7 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -85,7 +87,9 @@ body {
 
 /* ─── Map spinner animation ──────────────────────────────────────────────────── */
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ─── Leaflet overrides ─────────────────────────────────────────────────────── */
@@ -96,7 +100,7 @@ body {
 
 .leaflet-popup-content-wrapper {
   border-radius: 12px !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
   border: 1px solid #e2e8f0 !important;
   padding: 0 !important;
 }
@@ -131,6 +135,7 @@ body {
     grid-template-columns: 0.8fr 1.2fr;
     gap: 40px;
   }
+
   .hero-image-wrap {
     display: flex;
     justify-content: center;
@@ -143,8 +148,9 @@ body {
     opacity: 0.1;
     transform: scale(0.99) translateY(4px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
-}
+}

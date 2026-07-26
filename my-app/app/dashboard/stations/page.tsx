@@ -98,7 +98,7 @@ export default function StationsPage() {
           diesel: parsed.diesel || "LIMITED",
         });
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const handleSelectStation = (st: BackendStation) => {
@@ -118,9 +118,9 @@ export default function StationsPage() {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos((userCoords.lat * Math.PI) / 180) *
-        Math.cos((stLat * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+      Math.cos((stLat * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const dist = R * c;
     return dist < 1 ? `${Math.round(dist * 1000)} m` : `${dist.toFixed(1)} km`;

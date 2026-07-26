@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff, PartyPopper, Info, MapPin, Navigation, AlertCircle, Check } from "lucide-react";
 import styles from "./page.module.css";
 import stationAdminService from "@/services/stationAdminService";
 
@@ -274,7 +275,7 @@ export default function AdminRegisterPage() {
       <div className={styles.page}>
         <div className={styles.successWrap}>
           <div className={styles.successBox}>
-            <span className={styles.successIcon}>🎉</span>
+            <span className={styles.successIcon}><PartyPopper size={48} color="#2563eb" /></span>
             <h2 className={styles.successTitle}>Registration Successful!</h2>
             <p className={styles.successText}>
               Your admin account and station <strong>{submittedStationName}</strong> have been created.
@@ -361,7 +362,7 @@ export default function AdminRegisterPage() {
               </div>
 
               <div className={styles.infoNote}>
-                <span className={styles.infoNoteIcon}>ℹ️</span>
+                <span className={styles.infoNoteIcon}><Info size={16} color="#2563eb" /></span>
                 <p>Your station contact number and address will be collected in the next step as part of your station information.</p>
               </div>
             </div>
@@ -450,17 +451,19 @@ export default function AdminRegisterPage() {
                     background: form.latitude ? "#f0fdf4" : "#f8fafc",
                     border: `1px solid ${form.latitude ? "#86efac" : "#e2e8f0"}`,
                     borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600,
-                    color: form.latitude ? "#15803d" : "#64748b", minWidth: 160
+                    color: form.latitude ? "#15803d" : "#64748b", minWidth: 160,
+                    display: "flex", alignItems: "center", gap: 6
                   }}>
-                    📍 Lat: {form.latitude !== null ? form.latitude.toFixed(6) : "—"}
+                    <MapPin size={13} /> Lat: {form.latitude !== null ? form.latitude.toFixed(6) : "—"}
                   </div>
                   <div style={{
                     background: form.longitude ? "#f0fdf4" : "#f8fafc",
                     border: `1px solid ${form.longitude ? "#86efac" : "#e2e8f0"}`,
                     borderRadius: 8, padding: "8px 14px", fontSize: 13, fontWeight: 600,
-                    color: form.longitude ? "#15803d" : "#64748b", minWidth: 160
+                    color: form.longitude ? "#15803d" : "#64748b", minWidth: 160,
+                    display: "flex", alignItems: "center", gap: 6
                   }}>
-                    📍 Lng: {form.longitude !== null ? form.longitude.toFixed(6) : "—"}
+                    <MapPin size={13} /> Lng: {form.longitude !== null ? form.longitude.toFixed(6) : "—"}
                   </div>
                   <button type="button" onClick={useMyLocation}
                     style={{
@@ -471,7 +474,7 @@ export default function AdminRegisterPage() {
                     }}
                     onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "#dbeafe"; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "#eff6ff"; }}>
-                    🎯 Use My Location
+                    <Navigation size={14} /> Use My Location
                   </button>
                 </div>
 
@@ -503,9 +506,10 @@ export default function AdminRegisterPage() {
               {apiError && (
                 <div style={{
                   background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10,
-                  padding: "12px 16px", marginBottom: 16, color: "#991b1b", fontSize: 14
+                  padding: "12px 16px", marginBottom: 16, color: "#991b1b", fontSize: 14,
+                  display: "flex", alignItems: "center", gap: 8
                 }}>
-                  ❌ {apiError}
+                  <AlertCircle size={16} color="#ef4444" /> {apiError}
                 </div>
               )}
 
@@ -518,7 +522,7 @@ export default function AdminRegisterPage() {
                     placeholder="Min. 8 characters" value={form.password}
                     onChange={(e) => set("password", e.target.value)} />
                   <button type="button" className={styles.eyeBtn} onClick={() => setShowPassword((v) => !v)}>
-                    {showPassword ? "🙈" : "👁️"}
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
                 {errors.password && <p className={styles.error}>{errors.password}</p>}
@@ -544,7 +548,7 @@ export default function AdminRegisterPage() {
                     placeholder="Re-enter your password" value={form.confirmPassword}
                     onChange={(e) => set("confirmPassword", e.target.value)} />
                   <button type="button" className={styles.eyeBtn} onClick={() => setShowConfirm((v) => !v)}>
-                    {showConfirm ? "🙈" : "👁️"}
+                    {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
                 {errors.confirmPassword && <p className={styles.error}>{errors.confirmPassword}</p>}

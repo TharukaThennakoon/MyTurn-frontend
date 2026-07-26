@@ -281,7 +281,7 @@ export default function BookingFlow() {
           const u = JSON.parse(userStr);
           return u.vehicleId ? Number(u.vehicleId) : null;
         }
-      } catch (e) {}
+      } catch (e) { }
       return null;
     };
 
@@ -323,7 +323,7 @@ export default function BookingFlow() {
             const u = JSON.parse(userStr);
             if (u.vehicleNumber) return u.vehicleNumber;
           }
-        } catch (e) {}
+        } catch (e) { }
         return bookingData.vehicleNumber || "—";
       };
 
