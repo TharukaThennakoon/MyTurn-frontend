@@ -32,6 +32,7 @@ interface ActiveBooking {
 export default function UserDashboard() {
   const [stations, setStations] = useState<BackendStation[]>([]);
   const [activeBooking, setActiveBooking] = useState<ActiveBooking | null>(null);
+  const [lastCompletedBooking, setLastCompletedBooking] = useState<ActiveBooking | null>(null);
   const [loading, setLoading] = useState(true);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -58,14 +59,21 @@ export default function UserDashboard() {
     const handleStorageChange = () => {
       loadActiveBookingFromStorage();
     };
-
     window.addEventListener("storage", handleStorageChange);
+
+    // ── Poll every 15 s for booking status changes ────────────────────────────
+    // When admin clicks "Call Next Vehicle", the booking status changes to
+    // COMPLETED on the backend. This polling detects that change automatically.
+    const pollInterval = setInterval(silentPollBooking, 15000);
+
     return () => {
       window.removeEventListener("storage", handleStorageChange);
+      clearInterval(pollInterval);
       if (watchId !== null && typeof window !== "undefined" && "geolocation" in navigator) {
         navigator.geolocation.clearWatch(watchId);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadActiveBookingFromStorage = () => {
@@ -102,6 +110,29 @@ export default function UserDashboard() {
       }
     } catch (e) {
       setActiveBooking(null);
+    }
+  };
+
+  /**
+   * Silent background poll — no loading spinner, just updates the booking card.
+   * Detects when admin marks the booking COMPLETED.
+   */
+  const silentPollBooking = async () => {
+    try {
+      const bookingRes = await apiClient.get<ActiveBooking>("/bookings/active");
+      if (bookingRes.success && bookingRes.data) {
+        setActiveBooking(bookingRes.data);
+        setLastCompletedBooking(null);
+      }
+    } catch (e: any) {
+      const msg = e?.message?.toLowerCase() || "";
+      if (msg.includes("no active booking") || msg.includes("not found")) {
+        // Booking was completed or cancelled — capture it from lastCompletedBooking
+        setActiveBooking((prev) => {
+          if (prev) setLastCompletedBooking(prev);
+          return null;
+        });
+      }
     }
   };
 
@@ -203,7 +234,7 @@ export default function UserDashboard() {
 
       {/* Scrollable body */}
       <main style={styles.body}>
-        {/* Active appointment */}
+        {/* Active appointment / Completed card */}
         {activeBooking ? (
           <ActiveAppointmentCard
             tokenNumber={activeBooking.tokenNumber || 101}
@@ -216,6 +247,24 @@ export default function UserDashboard() {
             userLat={userCoords?.lat}
             userLng={userCoords?.lng}
           />
+        ) : lastCompletedBooking ? (
+          /* ── Booking Completed Banner ───────────────────────────────────── */
+          <div style={styles.completedCard}>
+            <div style={styles.completedIconWrap}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: "#15803d", margin: 0 }}>
+                Fuel Dispensed — All Done! ✓
+              </h3>
+              <p style={{ fontSize: 13, color: "#166534", margin: "4px 0 0" }}>
+                Your booking at <strong>{lastCompletedBooking.stationName || "the station"}</strong> has been
+                completed. Token <strong>#{lastCompletedBooking.tokenNumber}</strong>.
+              </p>
+            </div>
+          </div>
         ) : (
           <div style={styles.noActiveCard}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -231,6 +280,7 @@ export default function UserDashboard() {
             </div>
           </div>
         )}
+
 
         {/* Nearby Stations — full width, no SmartPick */}
         <div style={styles.nearbyCard}>
@@ -288,5 +338,28 @@ const styles: Record<string, React.CSSProperties> = {
     border: "1px solid #e2e8f0",
     boxShadow: "0 4px 12px rgba(0, 0, 0, 0.03)",
     padding: "14px 18px 18px",
+  },
+  completedCard: {
+    background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
+    borderRadius: 16,
+    padding: "20px 24px",
+    border: "1.5px solid #86efac",
+    boxShadow: "0 4px 16px rgba(22, 163, 74, 0.12)",
+    display: "flex",
+    alignItems: "center",
+    gap: 16,
+    animation: "fadeInUp 0.4s ease",
+  },
+  completedIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: "50%",
+    background: "#ffffff",
+    border: "2px solid #86efac",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    boxShadow: "0 2px 8px rgba(22, 163, 74, 0.15)",
   },
 };

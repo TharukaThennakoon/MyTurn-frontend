@@ -47,6 +47,7 @@ export interface AuthResponse {
   fullName?: string;
   name?: string;
   phone?: string;
+  vehicleId?: number;
   vehicleNumber?: string;
   stationId?: number;
   stationName?: string;

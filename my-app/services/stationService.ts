@@ -1,4 +1,5 @@
 import apiClient, { ApiResponse } from "./apiClient";
+import { TimeSlotResponse } from "./timeSlotService";
 
 export interface FuelInventoryItem {
   fuelType: string;
@@ -45,17 +46,6 @@ export interface UpdateFuelInventoryRequest {
   fuelType: string;
   availableLiters: number;
   maxCapacityLiters?: number;
-}
-
-export interface TimeSlotResponse {
-  id: number;
-  stationId: number;
-  startTime: string;
-  endTime: string;
-  maxCapacity: number;
-  bookedCount: number;
-  availableCapacity: number;
-  status: "AVAILABLE" | "FULL" | "CLOSED";
 }
 
 export const stationService = {

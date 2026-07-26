@@ -135,25 +135,34 @@ export default function AdminQueue() {
     }
   };
 
-  const handleCallNext = () => {
-    if (queueItems.length === 0) return;
-    setCallingNext(true);
+  const handleCallNext = async (bookingId?: string) => {
+    // If no specific bookingId, default to the first item in queue (the "next" one)
+    const targetId = bookingId || queueItems[0]?.id;
+    if (!targetId) return;
 
-    setTimeout(() => {
-      setCallingNext(false);
-      // Remove the first item (served vehicle) from the local list
-      setQueueItems((prev) => prev.slice(1));
-      setMetrics((prev) => ({
-        ...prev,
-        vehiclesInQueue: Math.max(0, (prev.vehiclesInQueue || 1) - 1),
-        vehiclesServedToday: (prev.vehiclesServedToday || 0) + 1,
-      }));
-      // Refresh from backend after a short delay
-      if (adminData.stationId) {
-        setTimeout(() => fetchQueueData(adminData.stationId!), 2000);
+    setCallingNext(true);
+    try {
+      // Tell the backend this booking is now COMPLETED (vehicle served)
+      const res = await apiClient.patch<unknown>(`/bookings/${targetId}/complete`);
+      if (res.success) {
+        // Optimistically update UI immediately
+        setQueueItems((prev) => prev.filter((item) => String(item.id) !== String(targetId)));
+        setMetrics((prev) => ({
+          ...prev,
+          vehiclesInQueue: Math.max(0, (prev.vehiclesInQueue || 1) - 1),
+          vehiclesServedToday: (prev.vehiclesServedToday || 0) + 1,
+          totalBookingsToday: prev.totalBookingsToday, // stays same — all time total
+        }));
       }
-      window.dispatchEvent(new Event("storage"));
-    }, 600);
+    } catch (e) {
+      console.error("Failed to complete booking:", e);
+    } finally {
+      setCallingNext(false);
+      // Always re-fetch from backend to sync true state
+      if (adminData.stationId) {
+        setTimeout(() => fetchQueueData(adminData.stationId!), 800);
+      }
+    }
   };
 
   const petrolAvailable = metrics.fuelAvailability?.some(
@@ -177,7 +186,7 @@ export default function AdminQueue() {
               <div className={styles.queueActions}>
                 <button
                   className={styles.callBtn}
-                  onClick={handleCallNext}
+                  onClick={() => handleCallNext()}
                   disabled={callingNext || (queueItems.length === 0 && metrics.vehiclesInQueue === 0)}
                   style={{ opacity: (queueItems.length === 0 && metrics.vehiclesInQueue === 0) ? 0.6 : 1 }}
                 >
@@ -269,7 +278,12 @@ export default function AdminQueue() {
                         </span>
                       </td>
                       <td style={{ textAlign: 'right' }}>
-                        <button className={styles.actionBtn} onClick={handleCallNext} title="Call vehicle">
+                        <button
+                          className={styles.actionBtn}
+                          onClick={() => handleCallNext(String(item.id))}
+                          title="Mark as served"
+                          disabled={callingNext}
+                        >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M8 5V19L19 12L8 5Z" />
                           </svg>

@@ -7,6 +7,9 @@ export * from "./queueService";
 export * from "./notificationService";
 export * from "./dashboardService";
 
+// Explicitly re-export to resolve wildcard export ambiguity
+export type { FuelType } from "./bookingService";
+
 import apiClient from "./apiClient";
 import authService from "./authService";
 import bookingService from "./bookingService";

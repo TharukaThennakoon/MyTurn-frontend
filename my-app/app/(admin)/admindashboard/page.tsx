@@ -85,7 +85,19 @@ export default function AdminDashboard() {
     };
 
     window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+
+    // ── Auto-refresh metrics every 30 s ─────────────────────────────────────
+    // When the Queue page marks a vehicle as COMPLETED via the API, this timer
+    // picks up the updated counts (vehiclesServedToday, vehiclesInQueue).
+    const refreshInterval = setInterval(() => {
+      if (currentStId) fetchDashboardMetrics(currentStId);
+    }, 30000);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(refreshInterval);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getDisplayVehiclePlate = (): string => {
