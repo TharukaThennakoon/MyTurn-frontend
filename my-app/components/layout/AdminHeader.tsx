@@ -1,5 +1,19 @@
 "use client";
+
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  User,
+  LogOut,
+  Settings,
+  Mail,
+  Phone,
+  MapPin,
+  Shield,
+  Bell,
+  ChevronDown,
+  Building2,
+} from "lucide-react";
 import styles from "./AdminHeader.module.css";
 
 interface AdminHeaderProps {
@@ -7,30 +21,74 @@ interface AdminHeaderProps {
   searchPlaceholder?: string;
 }
 
-export default function AdminHeader({ 
-  title = "MyTurn Dashboard", 
-  searchPlaceholder = "Search tokens..." 
+interface AdminUser {
+  name: string;
+  email: string;
+  phone: string;
+  stationId: number | null;
+  stationName: string;
+  role: string;
+}
+
+export default function AdminHeader({
+  title = "MyTurn Dashboard",
+  searchPlaceholder = "Search tokens...",
 }: AdminHeaderProps) {
-  const [adminName, setAdminName] = useState("");
-  const [stationName, setStationName] = useState("");
+  const router = useRouter();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showNotifMenu, setShowNotifMenu] = useState(false);
+
+  const [adminUser, setAdminUser] = useState<AdminUser>({
+    name: "Admin User",
+    email: "admin@myturn.lk",
+    phone: "+94 77 123 4567",
+    stationId: null,
+    stationName: "Station",
+    role: "ROLE_ADMIN",
+  });
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem("adminUser");
       if (stored) {
         const parsed = JSON.parse(stored);
-        setAdminName(parsed.name || parsed.fullName || "Admin");
-        setStationName(parsed.stationName || "");
+        setAdminUser({
+          name: parsed.name || parsed.fullName || "Admin User",
+          email: parsed.email || "admin@myturn.lk",
+          phone: parsed.phone || "Not specified",
+          stationId: parsed.stationId || null,
+          stationName: parsed.stationName || "Fuel Station",
+          role: parsed.role || "ROLE_ADMIN",
+        });
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error("Error reading admin user data:", e);
+    }
   }, []);
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminUser");
+    } catch (e) {
+      console.error("Error clearing admin session:", e);
+    }
+    setShowProfileMenu(false);
+    router.push("/adminlogin");
+  };
+
+  const getInitial = (name: string) => {
+    return name && name.trim().length > 0 ? name.trim().charAt(0).toUpperCase() : "A";
+  };
 
   return (
     <header className={styles.header}>
       <div className={styles.title}>
-        {stationName ? `${stationName} — Dashboard` : title}
+        {adminUser.stationName && adminUser.stationName !== "Station"
+          ? `${adminUser.stationName} — Dashboard`
+          : title}
       </div>
-      
+
       <div className={styles.rightSection}>
         <div className={styles.searchBox}>
           <svg className={styles.searchIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -40,21 +98,155 @@ export default function AdminHeader({
         </div>
 
         <div className={styles.headerActions}>
-          <button className={styles.iconBtn}>
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-          </button>
-          
-          <div className={styles.avatar} title={adminName}>
-            <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="20" cy="15" r="7" fill="#94a3b8"/>
-              <path d="M7 36C7 28.8203 12.8203 23 20 23C27.1797 23 33 28.8203 33 36V40H7V36Z" fill="#94a3b8"/>
-            </svg>
-            {adminName && (
-              <span style={{ fontSize: 12, fontWeight: 600, color: "#334155", marginLeft: 6, whiteSpace: "nowrap" }}>
-                {adminName}
-              </span>
+          {/* Notification Button & Popover */}
+          <div className={styles.dropdownWrapper}>
+            <button
+              className={styles.iconBtn}
+              onClick={() => {
+                setShowNotifMenu(!showNotifMenu);
+                setShowProfileMenu(false);
+              }}
+              title="Notifications"
+            >
+              <Bell size={18} />
+              <span className={styles.notifBadge} />
+            </button>
+
+            {showNotifMenu && (
+              <>
+                <div
+                  className={styles.dropdownBackdrop}
+                  onClick={() => setShowNotifMenu(false)}
+                />
+                <div className={styles.notifDropdown}>
+                  <div className={styles.dropdownHeader}>
+                    <Bell size={16} />
+                    <span>Admin Alerts & Notifications</span>
+                  </div>
+                  <div className={styles.notifList}>
+                    <div className={styles.notifItem}>
+                      <span className={styles.notifIconActive}>⛽</span>
+                      <div>
+                        <p className={styles.notifTitle}>Fuel Inventory Updated</p>
+                        <p className={styles.notifDesc}>Petrol 92 stock updated to 4,500 L.</p>
+                        <span className={styles.notifTime}>10 mins ago</span>
+                      </div>
+                    </div>
+                    <div className={styles.notifItem}>
+                      <span className={styles.notifIconInfo}>📋</span>
+                      <div>
+                        <p className={styles.notifTitle}>New Queue Token Issue</p>
+                        <p className={styles.notifDesc}>Token #104 checked in for Slot 09:00 AM.</p>
+                        <span className={styles.notifTime}>35 mins ago</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Admin Profile Trigger & Dropdown */}
+          <div className={styles.dropdownWrapper}>
+            <button
+              className={styles.profileTrigger}
+              onClick={() => {
+                setShowProfileMenu(!showProfileMenu);
+                setShowNotifMenu(false);
+              }}
+              aria-label="Admin Profile Menu"
+            >
+              <div className={styles.avatarBadge}>
+                {getInitial(adminUser.name)}
+              </div>
+              <div className={styles.profileMeta}>
+                <span className={styles.adminNameText}>{adminUser.name}</span>
+                <span className={styles.adminRoleSub}>
+                  {adminUser.stationId ? `Station #${adminUser.stationId}` : "Station Admin"}
+                </span>
+              </div>
+              <ChevronDown
+                size={16}
+                className={`${styles.chevronIcon} ${showProfileMenu ? styles.chevronRotated : ""}`}
+              />
+            </button>
+
+            {showProfileMenu && (
+              <>
+                <div
+                  className={styles.dropdownBackdrop}
+                  onClick={() => setShowProfileMenu(false)}
+                />
+
+                <div className={styles.profileDropdown}>
+                  {/* Top Profile Card */}
+                  <div className={styles.profileHeaderCard}>
+                    <div className={styles.largeAvatar}>
+                      {getInitial(adminUser.name)}
+                    </div>
+                    <div className={styles.profileHeaderDetails}>
+                      <h4 className={styles.profileHeaderName}>{adminUser.name}</h4>
+                      <span className={styles.profileHeaderRole}>
+                        <Shield size={12} style={{ marginRight: 4 }} />
+                        Station Administrator
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Admin Details Section */}
+                  <div className={styles.detailsGroup}>
+                    <div className={styles.detailRow}>
+                      <Building2 className={styles.detailIcon} />
+                      <span className={styles.detailLabel}>Station:</span>
+                      <span className={styles.detailValue}>{adminUser.stationName}</span>
+                    </div>
+
+                    {adminUser.stationId && (
+                      <div className={styles.detailRow}>
+                        <MapPin className={styles.detailIcon} />
+                        <span className={styles.detailLabel}>Station ID:</span>
+                        <span className={styles.detailValue}>#{adminUser.stationId}</span>
+                      </div>
+                    )}
+
+                    <div className={styles.detailRow}>
+                      <Mail className={styles.detailIcon} />
+                      <span className={styles.detailLabel}>Email:</span>
+                      <span className={styles.detailValue}>{adminUser.email}</span>
+                    </div>
+
+                    <div className={styles.detailRow}>
+                      <Phone className={styles.detailIcon} />
+                      <span className={styles.detailLabel}>Phone:</span>
+                      <span className={styles.detailValue}>{adminUser.phone}</span>
+                    </div>
+                  </div>
+
+                  <div className={styles.dropdownDivider} />
+
+                  {/* Quick Action Links & Logout */}
+                  <div className={styles.dropdownActions}>
+                    <button
+                      className={styles.settingsBtn}
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        router.push("/adminsettings");
+                      }}
+                    >
+                      <Settings size={16} />
+                      Admin Settings
+                    </button>
+
+                    <button
+                      className={styles.logoutBtn}
+                      onClick={handleLogout}
+                    >
+                      <LogOut size={16} />
+                      Log Out
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -62,3 +254,4 @@ export default function AdminHeader({
     </header>
   );
 }
+
